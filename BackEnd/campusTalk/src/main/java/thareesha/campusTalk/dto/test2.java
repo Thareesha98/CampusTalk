@@ -137,9 +137,7 @@ public class test2 {
 		this.posts = posts;
 	}
 
-	public Set<Club> getFollowedClubs() {
-		return followedClubs;
-	}
+	
 
 	public void setFollowedClubs(Set<Club> followedClubs) {
 		this.followedClubs = followedClubs;
