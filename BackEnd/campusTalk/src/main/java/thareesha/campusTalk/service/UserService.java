@@ -38,4 +38,15 @@ public class UserService {
 	 public void deleteUser(Long id) {
 	        userRepository.deleteById(id);
 	    }
+	 
+	 public List<User> getUsersByUniversity(Long universityId) {
+	        return userRepository.findAll()
+	                .stream()
+	                .filter(u -> u.getUniversity() != null && u.getUniversity().getId().equals(universityId))
+	                .toList();
+	    }
+	 
+	 public Optional<User> findByEmail(String email) {
+	        return userRepository.findByEmail(email);
+	    }
 }

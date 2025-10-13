@@ -1,5 +1,9 @@
 package thareesha.campusTalk.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -12,6 +16,7 @@ public class ClubMember {
 
     @ManyToOne
     @JoinColumn(name = "club_id")
+    @JsonBackReference  // "back" part of reference, ignore when serializing ClubMember
     private Club club;
 
     @ManyToOne

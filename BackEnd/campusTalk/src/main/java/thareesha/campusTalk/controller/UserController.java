@@ -3,7 +3,11 @@ package thareesha.campusTalk.controller;
 
 import thareesha.campusTalk.service.UserService;
 import thareesha.campusTalk.model.User;
+import thareesha.campusTalk.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -13,6 +17,9 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -38,4 +45,19 @@ public class UserController {
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
+    
+    @GetMapping("/university/{universityId}")
+    public ResponseEntity<List<User>> getUsersByUniversity(@PathVariable Long universityId) {
+        return ResponseEntity.ok(userService.getUsersByUniversity(universityId));
+    }
+    
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user);
+    }
+
+
 }

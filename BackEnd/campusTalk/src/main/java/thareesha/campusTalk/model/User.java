@@ -8,6 +8,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -20,7 +23,9 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String email;
-
+    
+    @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     private String department;
@@ -32,14 +37,29 @@ public class User {
     private String profilePicUrl;
     
     @ManyToMany(mappedBy = "followers")
+    @JsonIgnore
     private Set<Club> followedClubs = new HashSet<>();
 
 
     // Relationships
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("user") // avoid recursion in posts
     private List<Post> posts;
     
-    public Long getId() {
+    @ManyToOne
+    @JoinColumn(name = "university_id")
+    private University university;
+
+    
+    public University getUniversity() {
+		return university;
+	}
+
+	public void setUniversity(University university) {
+		this.university = university;
+	}
+
+	public Long getId() {
 		return id;
 	}
 

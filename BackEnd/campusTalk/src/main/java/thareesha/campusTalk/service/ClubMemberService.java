@@ -41,6 +41,7 @@ public class ClubMemberService {
         member.setClub(club);
         member.setUser(user);
         member.setRole(role);
+        club.getMembers().add(member);
 
         return clubMemberRepository.save(member);
     }
