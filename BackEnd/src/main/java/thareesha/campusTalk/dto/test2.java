@@ -1,8 +1,4 @@
-package thareesha.campusTalk.model;
-
-
-import jakarta.persistence.*;
-import lombok.*;
+package thareesha.campusTalk.dto;
 
 import java.util.HashSet;
 import java.util.List;
@@ -11,11 +7,21 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@Entity
-@Table(name = "users")
-public class User {
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import thareesha.campusTalk.model.Club;
+import thareesha.campusTalk.model.Post;
+import thareesha.campusTalk.model.University;
 
-    @Id
+public class test2 {
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -34,7 +40,6 @@ public class User {
 
     private String role; // "STUDENT" or "ADMIN"
 
-    @Column(name = "profile_pic_url")
     private String profilePicUrl;
     
     @ManyToMany(mappedBy = "followers")
@@ -50,8 +55,6 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "university_id")
     private University university;
-    
-    
 
     
     public University getUniversity() {
@@ -134,13 +137,10 @@ public class User {
 		this.posts = posts;
 	}
 
-	public Set<Club> getFollowedClubs() {
-		return followedClubs;
-	}
+	
 
 	public void setFollowedClubs(Set<Club> followedClubs) {
 		this.followedClubs = followedClubs;
 	}
 
-    
 }
