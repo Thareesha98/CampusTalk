@@ -21,6 +21,18 @@ public class RSVP {
     @JoinColumn(name = "event_id")
     private Event event;
 
+
+	@ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    private String status; // "going" or "interested"
+
+    private LocalDateTime timestamp;
+    
+    
+    
+    
     public Long getId() {
 		return id;
 	}
@@ -60,12 +72,4 @@ public class RSVP {
 	public void setTimestamp(LocalDateTime timestamp) {
 		this.timestamp = timestamp;
 	}
-
-	@ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    private String status; // "going" or "interested"
-
-    private LocalDateTime timestamp;
 }

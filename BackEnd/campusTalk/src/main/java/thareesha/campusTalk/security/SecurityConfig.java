@@ -20,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.List;
 
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true) // ✅ Enables @PreAuthorize and method-level security
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -32,13 +32,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 🔒 Disable CSRF for stateless APIs
+            // 1️⃣ Stateless API → disable CSRF
             .csrf(csrf -> csrf.disable())
 
-            // 🌐 Allow CORS from your frontend domain
+            // 2️⃣ Allow cross-origin requests
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:3000", "https://your-frontend-domain.com")); // update for deployment
+                config.setAllowedOrigins(List.of("http://localhost:3000", "https://your-frontend-domain.com"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setExposedHeaders(List.of("Authorization"));
@@ -46,46 +46,36 @@ public class SecurityConfig {
                 return config;
             }))
 
-            // 🛡️ Secure headers against XSS and framing
+            // 3️⃣ Secure headers
             .headers(headers -> headers
-           //     .xssProtection(xss -> xss.block(true))
                 .frameOptions(frame -> frame.sameOrigin())
                 .contentSecurityPolicy(csp -> csp.policyDirectives("script-src 'self'"))
             )
 
-            
-            
-            
-            // 🚪 Authorization Rules
+            // 4️⃣ Authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers(
-                    "/api/auth/**", 
-                    "/api/upload/image/**",
-                    "/api/universities/**"
-                ).permitAll()
-
-                // Allow GET for public viewing (e.g., clubs, events)
+                // Auth endpoints (public)
+                .requestMatchers("/api/auth/**").permitAll()
+                // Static or public resources
+                .requestMatchers("/api/upload/image/**", "/api/universities/**").permitAll()
+                // Allow GET (viewing) for clubs/events
                 .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
-
-                // Restrict admin-only areas
+                // Admin-only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                // Any other request requires authentication
+                // Everything else needs login
                 .anyRequest().authenticated()
             )
 
-            // 🧱 Stateless session
+            // 5️⃣ Stateless sessions
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // 🔑 Use our custom provider and filter
+            // 6️⃣ Custom provider + JWT filter
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // 🧩 Authentication Provider setup
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -94,17 +84,13 @@ public class SecurityConfig {
         return provider;
     }
 
-    // 🔐 Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ⚙️ Authentication manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }
-
-

@@ -1,5 +1,6 @@
 package thareesha.campusTalk.service;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import thareesha.campusTalk.model.RefreshToken;
@@ -17,7 +18,11 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
 
-    @Value("${jwt.refresh-expiration-ms}")
+    // read raw string (avoid conversion error)
+    @Value("${jwt.refresh-expiration-ms:604800000}")
+    private String refreshTokenDurationMsRaw;
+
+    // internal long value used by service
     private Long refreshTokenDurationMs;
 
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
@@ -25,11 +30,28 @@ public class RefreshTokenService {
         this.userRepository = userRepository;
     }
 
+    @PostConstruct
+    private void init() {
+        // sanitize: keep only leading digits
+        if (refreshTokenDurationMsRaw == null) {
+            refreshTokenDurationMs = 604800000L; // safe default 7 days
+        } else {
+            String digits = refreshTokenDurationMsRaw.replaceAll("^\\D*(\\d+).*", "$1");
+            try {
+                refreshTokenDurationMs = Long.parseLong(digits);
+            } catch (Exception e) {
+                // fallback to default if parsing fails
+                refreshTokenDurationMs = 604800000L;
+            }
+        }
+        System.out.println("🔹 refreshTokenDurationMs loaded (ms) = " + refreshTokenDurationMs);
+    }
+
     public RefreshToken createRefreshToken(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // remove old refresh tokens for this user (optional)
+        // optionally remove old refresh tokens for this user
         refreshTokenRepository.deleteByUser(user);
 
         RefreshToken refreshToken = new RefreshToken();

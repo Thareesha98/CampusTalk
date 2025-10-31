@@ -1,18 +1,16 @@
 package thareesha.campusTalk.model;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
     @Id
@@ -23,124 +21,71 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String email;
-    
+
     @Column(nullable = false)
-    @JsonIgnore
+    @JsonIgnore // never send password to frontend
     private String password;
 
     private String department;
-
     private String year;
 
-    private String role; // "STUDENT" or "ADMIN"
+    /**
+     * Roles: "ADMIN", "CHAIRMAN", "STUDENT"
+     * Note: Do NOT prefix with "ROLE_" — Spring adds it internally.
+     */
+    private String role;
 
     @Column(name = "profile_pic_url")
     private String profilePicUrl;
-    
+
+    // 🔁 User follows many clubs
     @ManyToMany(mappedBy = "followers")
     @JsonIgnore
     private Set<Club> followedClubs = new HashSet<>();
 
-
-    // Relationships
+    // 📝 One user can have many posts
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("user") // avoid recursion in posts
+    @JsonIgnoreProperties("user") // avoid recursive serialization
     private List<Post> posts;
-    
-    @ManyToOne
+
+    // 🎓 Each user belongs to one university
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "university_id")
+    @JsonIgnoreProperties({"users", "hibernateLazyInitializer"})
     private University university;
-    
-    
 
-    
-    public University getUniversity() {
-		return university;
-	}
+    // --- GETTERS & SETTERS ---
 
-	public void setUniversity(University university) {
-		this.university = university;
-	}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public Long getId() {
-		return id;
-	}
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-	public String getName() {
-		return name;
-	}
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
 
-	public String getEmail() {
-		return email;
-	}
+    public String getYear() { return year; }
+    public void setYear(String year) { this.year = year; }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getProfilePicUrl() { return profilePicUrl; }
+    public void setProfilePicUrl(String profilePicUrl) { this.profilePicUrl = profilePicUrl; }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public List<Post> getPosts() { return posts; }
+    public void setPosts(List<Post> posts) { this.posts = posts; }
 
-	public String getDepartment() {
-		return department;
-	}
+    public Set<Club> getFollowedClubs() { return followedClubs; }
+    public void setFollowedClubs(Set<Club> followedClubs) { this.followedClubs = followedClubs; }
 
-	public void setDepartment(String department) {
-		this.department = department;
-	}
-
-	public String getYear() {
-		return year;
-	}
-
-	public void setYear(String year) {
-		this.year = year;
-	}
-
-	public String getRole() {
-		return role;
-	}
-
-	public void setRole(String role) {
-		this.role = role;
-	}
-
-	public String getProfilePicUrl() {
-		return profilePicUrl;
-	}
-
-	public void setProfilePicUrl(String profilePicUrl) {
-		this.profilePicUrl = profilePicUrl;
-	}
-
-	public List<Post> getPosts() {
-		return posts;
-	}
-
-	public void setPosts(List<Post> posts) {
-		this.posts = posts;
-	}
-
-	public Set<Club> getFollowedClubs() {
-		return followedClubs;
-	}
-
-	public void setFollowedClubs(Set<Club> followedClubs) {
-		this.followedClubs = followedClubs;
-	}
-
-    
+    public University getUniversity() { return university; }
+    public void setUniversity(University university) { this.university = university; }
 }
