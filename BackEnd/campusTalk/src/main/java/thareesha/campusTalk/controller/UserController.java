@@ -105,26 +105,55 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    // 🖼 Upload profile picture — only self
+//    // 🖼 Upload profile picture — only self
+//    @PreAuthorize("isAuthenticated()")
+//    @PostMapping("/upload-profile-pic")
+//    public ResponseEntity<?> uploadProfilePicture(
+//            @RequestParam("file") MultipartFile file,
+//            @RequestHeader("Authorization") String tokenHeader) {
+//
+//        String token = tokenHeader.substring(7);
+//        String email = jwtService.extractEmail(token);
+//
+//        User user = userService.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        String imageUrl = s3Service.uploadFile(file, "user-profile-pics/");
+//        user.setProfilePicUrl(imageUrl);
+//        userRepository.save(user);
+//
+//        return ResponseEntity.ok(Map.of(
+//                "message", "Profile picture updated successfully",
+//                "url", imageUrl
+//        ));
+//    }
+    
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/upload-profile-pic")
     public ResponseEntity<?> uploadProfilePicture(
             @RequestParam("file") MultipartFile file,
             @RequestHeader("Authorization") String tokenHeader) {
 
+        // Extract token from header
         String token = tokenHeader.substring(7);
         String email = jwtService.extractEmail(token);
 
+        // Find user
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Upload to AWS S3
         String imageUrl = s3Service.uploadFile(file, "user-profile-pics/");
+
+        // Update user profile image URL
         user.setProfilePicUrl(imageUrl);
         userRepository.save(user);
 
+        // Send success response
         return ResponseEntity.ok(Map.of(
                 "message", "Profile picture updated successfully",
                 "url", imageUrl
         ));
     }
+
 }
