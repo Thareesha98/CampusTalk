@@ -1,7 +1,12 @@
 package thareesha.campusTalk.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -26,10 +31,11 @@ public class University {
 
     private String logoUrl;
 
-    // Relationships
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<User> students;
 
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL)
     private List<Club> clubs;
 }
+

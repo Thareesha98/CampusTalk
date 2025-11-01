@@ -1,6 +1,8 @@
 package thareesha.campusTalk.service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import thareesha.campusTalk.model.RefreshToken;
@@ -47,19 +49,23 @@ public class RefreshTokenService {
         System.out.println("🔹 refreshTokenDurationMs loaded (ms) = " + refreshTokenDurationMs);
     }
 
+    @Transactional
     public RefreshToken createRefreshToken(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // optionally remove old refresh tokens for this user
+        // Remove old refresh tokens first
         refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.flush(); // 🔥 Force delete immediately
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
+
         return refreshTokenRepository.save(refreshToken);
     }
+
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);

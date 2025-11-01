@@ -1,7 +1,10 @@
 package thareesha.campusTalk.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -23,7 +26,8 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore // never send password to frontend
+   // @JsonIgnore // never send password to frontend
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     private String department;
@@ -51,8 +55,9 @@ public class User {
     // 🎓 Each user belongs to one university
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "university_id")
-    @JsonIgnoreProperties({"users", "hibernateLazyInitializer"})
+    @JsonIgnoreProperties({"students", "clubs"})
     private University university;
+
 
     // --- GETTERS & SETTERS ---
 

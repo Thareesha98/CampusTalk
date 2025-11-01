@@ -1,24 +1,16 @@
 package thareesha.campusTalk.model;
 
-
-import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import java.util.*;
 
 @Entity
 @Table(name = "clubs")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Club {
 
-   
-
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -27,112 +19,70 @@ public class Club {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // Chairman of the club (User who manages it)
+    // 👤 Chairman of the club
     @ManyToOne
     @JoinColumn(name = "chairman_id")
-    @JsonIgnoreProperties({"followedClubs", "posts", "password"}) // avoid infinite loops
-
+    @JsonIgnoreProperties({
+        "followedClubs", "posts", "university", "password"
+    })
     private User chairman;
 
-    // Relationships
+    // 📅 Club events
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
-    private List<Event> events;
+    @JsonIgnoreProperties("club") // prevent Event → Club → Event loop
+    private List<Event> events = new ArrayList<>();
 
+    // 👥 Club members
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
-    @JsonManagedReference 
-    private List<ClubMember> members = new ArrayList<>();;
-    
+    @JsonManagedReference // links to ClubMember.club
+    private List<ClubMember> members = new ArrayList<>();
+
+    // ❤️ Followers
     @ManyToMany
     @JoinTable(
         name = "club_followers",
         joinColumns = @JoinColumn(name = "club_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @JsonIgnoreProperties({
+        "followedClubs", "posts", "university", "password"
+    })
     private Set<User> followers = new HashSet<>();
-    
-    @ManyToOne
+
+    // 🏫 University
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "university_id")
+    @JsonIgnoreProperties({"clubs", "students"}) // avoid infinite club ↔ university recursion
     private University university;
 
-    
     @Column(name = "profile_pic_url")
     private String profilePicUrl;
 
-    
-    
-    
-    
-    
-    public String getProfilePicUrl() {
-		return profilePicUrl;
-	}
+    // --- Getters & Setters ---
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public void setProfilePicUrl(String profilePicUrl) {
-		this.profilePicUrl = profilePicUrl;
-	}
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-	public University getUniversity() {
-		return university;
-	}
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-	public void setUniversity(University university) {
-		this.university = university;
-	}
+    public User getChairman() { return chairman; }
+    public void setChairman(User chairman) { this.chairman = chairman; }
 
-	public Long getId() {
-		return id;
-	}
+    public List<Event> getEvents() { return events; }
+    public void setEvents(List<Event> events) { this.events = events; }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public List<ClubMember> getMembers() { return members; }
+    public void setMembers(List<ClubMember> members) { this.members = members; }
 
-	public String getName() {
-		return name;
-	}
+    public Set<User> getFollowers() { return followers; }
+    public void setFollowers(Set<User> followers) { this.followers = followers; }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public University getUniversity() { return university; }
+    public void setUniversity(University university) { this.university = university; }
 
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public User getChairman() {
-		return chairman;
-	}
-
-	public void setChairman(User chairman) {
-		this.chairman = chairman;
-	}
-
-	public List<Event> getEvents() {
-		return events;
-	}
-
-	public void setEvents(List<Event> events) {
-		this.events = events;
-	}
-
-	public List<ClubMember> getMembers() {
-		return members;
-	}
-
-	public void setMembers(List<ClubMember> members) {
-		this.members = members;
-	}
-
-	public Set<User> getFollowers() {
-		return followers;
-	}
-
-	public void setFollowers(Set<User> followers) {
-		this.followers = followers;
-	}
-     
+    public String getProfilePicUrl() { return profilePicUrl; }
+    public void setProfilePicUrl(String profilePicUrl) { this.profilePicUrl = profilePicUrl; }
 }
