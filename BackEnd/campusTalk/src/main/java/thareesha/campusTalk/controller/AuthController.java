@@ -48,6 +48,9 @@ public class AuthController {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
         }
+        
+        System.out.println("🔍 Received user: " + user.getEmail() + " | password=" + user.getPassword());
+
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
