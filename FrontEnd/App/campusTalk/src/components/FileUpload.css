@@ -1,0 +1,4 @@
+/* src/components/FileUpload/FileUpload.css */
+.file-upload input { display:none; }
+.upload-label { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); color:#7dd3fc; cursor:pointer; }
+.progress { font-weight:700; color: #fff; }

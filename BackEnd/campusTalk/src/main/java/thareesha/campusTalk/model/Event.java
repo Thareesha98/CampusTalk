@@ -22,6 +22,23 @@ public class Event {
 
     private String location;
 
+   
+
+	private LocalDateTime dateTime;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "club_id")
+    private Club club; // <— You added this, which is great!
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<RSVP> rsvps;
+    
+    
+    
     public Long getId() {
 		return id;
 	}
@@ -85,17 +102,4 @@ public class Event {
 	public void setRsvps(List<RSVP> rsvps) {
 		this.rsvps = rsvps;
 	}
-
-	private LocalDateTime dateTime;
-
-    @ManyToOne
-    @JoinColumn(name = "created_by")
-    private User createdBy;
-
-    @ManyToOne
-    @JoinColumn(name = "club_id")
-    private Club club; // <— You added this, which is great!
-
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<RSVP> rsvps;
 }

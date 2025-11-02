@@ -32,8 +32,17 @@ public class User {
 
     private String department;
     private String year;
+    
+    @Column(columnDefinition="TEXT")
+    private String bio;
 
-    /**
+    public String getBio() {
+		return bio;
+	}
+	public void setBio(String bio) {
+		this.bio = bio;
+	}
+	/**
      * Roles: "ADMIN", "CHAIRMAN", "STUDENT"
      * Note: Do NOT prefix with "ROLE_" — Spring adds it internally.
      */
@@ -52,11 +61,11 @@ public class User {
     @JsonIgnoreProperties("user") // avoid recursive serialization
     private List<Post> posts;
 
-    // 🎓 Each user belongs to one university
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "university_id")
-    @JsonIgnoreProperties({"students", "clubs"})
+    @JsonIgnoreProperties({"students", "clubs"})  // ✅ prevents circular reference
     private University university;
+
 
 
     // --- GETTERS & SETTERS ---

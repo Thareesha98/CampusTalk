@@ -32,13 +32,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1️⃣ Stateless API → disable CSRF
+            // 1️⃣ Disable CSRF for API
             .csrf(csrf -> csrf.disable())
 
-            // 2️⃣ Allow cross-origin requests
+            // 2️⃣ Allow cross-origin requests from React frontend
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:3000", "https://your-frontend-domain.com"));
+                config.setAllowedOrigins(List.of(
+                    "http://localhost:5173",   // ✅ React (Vite)
+                    "http://localhost:3000",   // Optional (CRA)
+                    "https://your-frontend-domain.com"
+                ));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setExposedHeaders(List.of("Authorization"));
@@ -46,7 +50,7 @@ public class SecurityConfig {
                 return config;
             }))
 
-            // 3️⃣ Secure headers
+            // 3️⃣ Security headers
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())
                 .contentSecurityPolicy(csp -> csp.policyDirectives("script-src 'self'"))
@@ -54,22 +58,17 @@ public class SecurityConfig {
 
             // 4️⃣ Authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Auth endpoints (public)
                 .requestMatchers("/api/auth/**").permitAll()
-                // Static or public resources
                 .requestMatchers("/api/upload/image/**", "/api/universities/**").permitAll()
-                // Allow GET (viewing) for clubs/events
                 .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
-                // Admin-only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Everything else needs login
                 .anyRequest().authenticated()
             )
 
-            // 5️⃣ Stateless sessions
+            // 5️⃣ Stateless session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // 6️⃣ Custom provider + JWT filter
+            // 6️⃣ Custom auth provider and JWT filter
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
