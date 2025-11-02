@@ -39,7 +39,7 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    // 🔒 ADMIN or the user themselves can view a specific user
+    // 🔒 ADMIN or SELF: view specific user
     @PreAuthorize("hasAnyRole('ADMIN', 'CHAIRMAN', 'STUDENT')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id, Authentication authentication) {
@@ -50,35 +50,58 @@ public class UserController {
         User targetUser = userService.getUserById(id)
                 .orElseThrow(() -> new RuntimeException("Target user not found"));
 
-        // 🧠 Allow self or admin
-        if (!currentUser.getId().equals(id) && !currentUser.getRole().equals("ADMIN")) {
+        if (!currentUser.getId().equals(id) && !"ADMIN".equals(currentUser.getRole())) {
             return ResponseEntity.status(403).body(Map.of("error", "Access denied"));
         }
 
         return ResponseEntity.ok(targetUser);
     }
 
-    // 🔒 ADMIN only: create new users
+    // 🔒 ADMIN only: create users
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.saveUser(user);
     }
 
-    // 🔒 ADMIN or SELF: update user profile
+    // 🔒 SELF or ADMIN: update profile (bio + pic)
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'CHAIRMAN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User updatedUser, Authentication authentication) {
+    public ResponseEntity<?> updateUser(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates,
+            Authentication authentication) {
+
         String email = authentication.getName();
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!currentUser.getId().equals(id) && !currentUser.getRole().equals("ADMIN")) {
+        if (!currentUser.getId().equals(id) && !"ADMIN".equals(currentUser.getRole())) {
             return ResponseEntity.status(403).body(Map.of("error", "You can only update your own profile"));
         }
 
-        User saved = userService.updateUser(id, updatedUser);
-        return ResponseEntity.ok(saved);
+        // ✅ Apply partial updates safely
+        if (updates.containsKey("bio")) {
+            currentUser.setBio((String) updates.get("bio"));
+        }
+        if (updates.containsKey("profilePicUrl")) {
+            currentUser.setProfilePicUrl((String) updates.get("profilePicUrl"));
+        }
+
+        userRepository.save(currentUser);
+
+        // ✅ Return clean, non-sensitive JSON
+        return ResponseEntity.ok(Map.of(
+                "id", currentUser.getId(),
+                "name", currentUser.getName(),
+                "email", currentUser.getEmail(),
+                "bio", currentUser.getBio(),
+                "profilePicUrl", currentUser.getProfilePicUrl(),
+                "university", currentUser.getUniversity() != null
+                        ? currentUser.getUniversity().getName()
+                        : null,
+                "role", currentUser.getRole()
+        ));
     }
 
     // 🔒 ADMIN only
@@ -89,7 +112,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
     }
 
-    // 🔓 Public or Admin
+    // 🔓 Public or Admin: view by university
     @GetMapping("/university/{universityId}")
     public ResponseEntity<List<User>> getUsersByUniversity(@PathVariable Long universityId) {
         return ResponseEntity.ok(userService.getUsersByUniversity(universityId));
@@ -105,55 +128,26 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-//    // 🖼 Upload profile picture — only self
-//    @PreAuthorize("isAuthenticated()")
-//    @PostMapping("/upload-profile-pic")
-//    public ResponseEntity<?> uploadProfilePicture(
-//            @RequestParam("file") MultipartFile file,
-//            @RequestHeader("Authorization") String tokenHeader) {
-//
-//        String token = tokenHeader.substring(7);
-//        String email = jwtService.extractEmail(token);
-//
-//        User user = userService.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        String imageUrl = s3Service.uploadFile(file, "user-profile-pics/");
-//        user.setProfilePicUrl(imageUrl);
-//        userRepository.save(user);
-//
-//        return ResponseEntity.ok(Map.of(
-//                "message", "Profile picture updated successfully",
-//                "url", imageUrl
-//        ));
-//    }
-    
+    // 🖼 Upload profile picture (authenticated users only)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/upload-profile-pic")
     public ResponseEntity<?> uploadProfilePicture(
             @RequestParam("file") MultipartFile file,
             @RequestHeader("Authorization") String tokenHeader) {
 
-        // Extract token from header
         String token = tokenHeader.substring(7);
         String email = jwtService.extractEmail(token);
 
-        // Find user
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Upload to AWS S3
         String imageUrl = s3Service.uploadFile(file, "user-profile-pics/");
-
-        // Update user profile image URL
         user.setProfilePicUrl(imageUrl);
         userRepository.save(user);
 
-        // Send success response
         return ResponseEntity.ok(Map.of(
                 "message", "Profile picture updated successfully",
                 "url", imageUrl
         ));
     }
-
 }

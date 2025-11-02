@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import thareesha.campusTalk.dto.RegisterRequest;
 import thareesha.campusTalk.model.RefreshToken;
 import thareesha.campusTalk.model.University;
 import thareesha.campusTalk.model.User;
@@ -43,28 +45,51 @@ public class AuthController {
 
 
     // ✅ REGISTER
+//    @PostMapping("/register")
+//    public ResponseEntity<?> register(@RequestBody User user) {
+//        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+//            return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
+//        }
+//        
+//        System.out.println("🔍 Received user: " + user.getEmail() + " | password=" + user.getPassword());
+//
+//
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+//
+//        if (user.getUniversity() != null && user.getUniversity().getName() != null) {
+//            University uni = universityRepository.findByName(user.getUniversity().getName())
+//                    .orElseThrow(() -> new RuntimeException("University not found: " + user.getUniversity().getName()));
+//            user.setUniversity(uni);
+//        } else {
+//            return ResponseEntity.badRequest().body(Map.of("error", "University is required"));
+//        }
+//
+//        userRepository.save(user);
+//        return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+//    }
+    
+    
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
         }
-        
-        System.out.println("🔍 Received user: " + user.getEmail() + " | password=" + user.getPassword());
 
+        University uni = universityRepository.findByName(req.getUniversityName())
+                .orElseThrow(() -> new RuntimeException("University not found: " + req.getUniversityName()));
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        if (user.getUniversity() != null && user.getUniversity().getName() != null) {
-            University uni = universityRepository.findByName(user.getUniversity().getName())
-                    .orElseThrow(() -> new RuntimeException("University not found: " + user.getUniversity().getName()));
-            user.setUniversity(uni);
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "University is required"));
-        }
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setRole(req.getRole());
+        user.setUniversity(uni);
 
         userRepository.save(user);
+
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
+
 
     // ✅ LOGIN
     @PostMapping("/login")
@@ -88,10 +113,13 @@ public class AuthController {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
         return ResponseEntity.ok(Map.of(
+        		"id", user.getId(),
+        	    "name", user.getName(),
                 "accessToken", accessToken,
                 "refreshToken", refreshToken.getToken(),
                 "email", user.getEmail(),
-                "role", user.getRole()
+                "role", user.getRole(),
+                "university",user.getUniversity()
         ));
     }
 

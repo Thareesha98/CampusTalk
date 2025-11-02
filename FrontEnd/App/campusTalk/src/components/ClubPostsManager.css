@@ -1,0 +1,101 @@
+.club-posts-manager {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.post-form {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.post-form textarea {
+  resize: none;
+  min-height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.post-form input[type="file"] {
+  margin-top: 6px;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #0062cc;
+}
+
+.btn-cancel {
+  background: #f87171;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.post-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-author img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+.post-content {
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+.post-image {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.post-stats {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 8px;
+}

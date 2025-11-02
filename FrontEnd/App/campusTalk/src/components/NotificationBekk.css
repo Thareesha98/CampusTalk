@@ -1,0 +1,4 @@
+/* src/components/NotificationBell/NotificationBell.css */
+.notif-bell { position: relative; background: transparent; border: none; cursor: pointer; padding: 6px; }
+.notif-bell .icon { width: 18px; height: 18px; stroke: #dbeffd; fill: none; stroke-width: 1.2; }
+.notif-count { position: absolute; top: 4px; right: 4px; background: #ef4444; color: white; font-weight:700; font-size: 11px; padding: 2px 6px; border-radius: 12px; }

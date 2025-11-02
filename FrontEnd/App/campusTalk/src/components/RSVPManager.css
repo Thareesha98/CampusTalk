@@ -1,0 +1,66 @@
+.rsvp-manager {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.event-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.event-selector select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.btn-export {
+  background: #10b981;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-export:hover {
+  background: #059669;
+}
+
+.rsvp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rsvp-table th,
+.rsvp-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.rsvp-table th {
+  background: #f3f4f6;
+}
+
+.btn-delete {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+.muted {
+  color: #777;
+  text-align: center;
+  padding: 20px 0;
+}
