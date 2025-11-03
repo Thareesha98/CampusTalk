@@ -1,112 +1,251 @@
-/* Clubs Page — CampusTalk */
+/* ensure card clips children and keeps rounded corners */
+.club-card {
+  background: #0d1837;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  overflow: hidden;               /* clip banner image to rounded corners */
+  transition: transform .25s ease, box-shadow .25s ease;
+  position: relative;
+}
 
+/* top gradient accent remains but now sits on top-left of the banner */
+.club-card .club-banner {
+  height: 140px;                  /* fixed banner height */
+  width: 100%;
+  position: relative;
+  background: linear-gradient(135deg, #00dfd8, #007cf0);
+  /* keep a small rounded top-left and top-right */
+}
+
+/* image inside banner: make it cover and center, fill banner area */
+.club-card .club-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;              /* crop to fill without stretching */
+  object-position: center center; /* center subject */
+  border-top-left-radius: 16px;   /* keep consistent rounded corners */
+  border-top-right-radius: 16px;
+}
+
+/* If you used the small left accent bar separately, hide it — banner image covers it */
+.club-card .banner-accent {
+  display: none;
+}
+
+/* club info should be pushed below the banner and be readable */
+.club-card .club-info {
+  padding: 1rem 1.2rem;
+  text-align: left;               /* left align for readability */
+  background: linear-gradient(180deg, rgba(13,24,55,0.03), transparent);
+  margin-top: 0;
+}
+
+/* make heading and meta more visible on dark background */
+.club-info h3 {
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.club-info p.muted {
+  color: #b7c6ee;
+  margin: 0 0 10px 0;
+}
+
+/* keep join button floating to the right in the card footer */
+.club-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ensure the image does not overflow small screens */
+@media (max-width: 600px) {
+  .club-card .club-banner {
+    height: 110px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 🌙 Dark theme container */
 .clubs-page {
-  color: #e6f0ff;
-  padding: 100px 20px 60px;
-  max-width: 1100px;
-  margin: 0 auto;
+  padding: 2rem 4rem;
+  background-color: #081229;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  min-height: 100vh;
 }
 
+/* 🔹 Page heading */
 .clubs-page h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
   text-align: center;
-  font-size: 26px;
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
+  color: #e6ebff;
 }
 
-/* Filters */
+/* 🔍 Filters section */
 .club-filters {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
 }
 
 .club-filters select,
 .club-filters input {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0f1c3d;
+  border: 1px solid #2a3b6e;
   border-radius: 8px;
-  padding: 8px 10px;
-  color: #e6f0ff;
+  padding: 0.6rem 1rem;
+  color: #d0d6f6;
+  font-size: 0.95rem;
   outline: none;
-}
-.club-filters input {
   width: 200px;
 }
-.club-filters .btn-primary {
-  background: linear-gradient(90deg, #0ea5a2, #06b6d4);
-  border: none;
-  color: #022626;
-  font-weight: 700;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
+
+.club-filters input::placeholder {
+  color: #aab4de;
 }
 
-/* Clubs Grid */
+.club-filters .btn-primary {
+  background: linear-gradient(135deg, #007cf0, #00dfd8);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.club-filters .btn-primary:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* 🧩 Clubs grid layout */
 .clubs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
 }
 
+/* 🏛 Club card styling */
 .club-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
+  background: #0d1837;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-  box-shadow: 0 8px 26px rgba(3, 7, 18, 0.4);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  padding-bottom: 1rem;
 }
 
 .club-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 36px rgba(3, 7, 18, 0.55);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 255, 255, 0.15);
 }
 
-.club-banner img {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
+/* 📸 Banner / left accent bar */
+.club-banner {
+  height: 6px;
+  background: linear-gradient(135deg, #00dfd8, #007cf0);
+  margin-bottom: 1rem;
 }
 
+/* 🧠 Club info */
 .club-info {
-  padding: 14px;
+  padding: 1rem 1.2rem;
+  text-align: center;
 }
 
 .club-info h3 {
-  margin: 0 0 6px;
-  font-size: 18px;
-}
-.muted {
-  font-size: 13px;
-  opacity: 0.7;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #ffffff;
 }
 
+.club-info p.muted {
+  font-size: 0.9rem;
+  color: #aab4de;
+  margin-bottom: 0.8rem;
+}
+
+/* 👥 Meta (members + events) */
 .club-meta {
   display: flex;
   justify-content: space-between;
-  margin: 8px 0;
-  font-size: 13px;
-  color: #7dd3fc;
+  font-size: 0.85rem;
+  color: #9fb3e4;
+  margin-bottom: 1rem;
+  padding: 0 0.4rem;
 }
 
+/* 🟦 Join / Joined buttons */
 .btn-join {
-  background: linear-gradient(90deg, #0ea5a2, #06b6d4);
-  color: #022626;
   border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-weight: 700;
+  background: linear-gradient(135deg, #007cf0, #00dfd8);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
   cursor: pointer;
-  transition: opacity 0.25s ease;
+  transition: 0.3s ease;
 }
+
 .btn-join:hover {
-  opacity: 0.85;
+  opacity: 0.9;
+  transform: scale(1.03);
 }
+
 .btn-join.joined {
-  background: rgba(255, 255, 255, 0.06);
-  color: #7dd3fc;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #23335c;
+  color: #00dfd8;
+  border: 1px solid #00dfd8;
+}
+
+.btn-join.joined:hover {
+  background: #14244d;
+}
+
+/* 💤 Loading & empty states */
+.muted {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #9ca6c9;
+}
+
+@media (max-width: 768px) {
+  .clubs-page {
+    padding: 1.5rem;
+  }
+
+  .club-filters {
+    flex-direction: column;
+  }
+
+  .club-card {
+    padding-bottom: 1.5rem;
+  }
 }

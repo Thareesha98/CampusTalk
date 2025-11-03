@@ -28,9 +28,9 @@ public class Club {
     private User chairman;
 
     // 📅 Club events
-    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("club") // prevent Event → Club → Event loop
-    private List<Event> events = new ArrayList<>();
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // matches Event.club @JsonBackReference
+    private List<Event> events = new ArrayList<>() ;
 
     // 👥 Club members
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
@@ -57,6 +57,26 @@ public class Club {
 
     @Column(name = "profile_pic_url")
     private String profilePicUrl;
+    
+    
+    
+    public void addFollower(User user) {
+        this.followers.add(user);
+    }
+
+    public void removeFollower(User user) {
+        this.followers.remove(user);
+    }
+
+    public boolean hasFollower(User user) {
+        return this.followers.contains(user);
+    }
+
+    public int getFollowerCount() {
+        return this.followers.size();
+    }
+    
+    
 
     // --- Getters & Setters ---
     public Long getId() { return id; }

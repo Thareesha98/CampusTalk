@@ -20,7 +20,7 @@ public class Post {
 
     private String imageUrl;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now(); ;
     
     private int likes;
     

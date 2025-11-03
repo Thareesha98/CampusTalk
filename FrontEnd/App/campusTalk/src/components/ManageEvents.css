@@ -1,39 +1,40 @@
-.club-posts-manager {
+.manage-events {
   padding: 25px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.07);
-  max-width: 700px;
+  max-width: 750px;
   margin: auto;
 }
 
 .manager-title {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  color: #222;
   text-align: center;
+  margin-bottom: 20px;
+  color: #222;
 }
 
-.post-form {
+.event-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 24px;
 }
 
-.post-form textarea {
-  min-height: 100px;
+.event-form input,
+.event-form textarea,
+.event-form select {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 1rem;
-  resize: vertical;
+  color: #443e3ec2;
 }
 
-.post-form input[type="file"] {
-  border: none;
-  font-size: 0.9rem;
+.event-form textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
 .form-actions {
@@ -67,13 +68,13 @@
   background: #c62828;
 }
 
-.posts-list {
+.events-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.post-card {
+.event-card {
   background: #fafafa;
   border: 1px solid #eee;
   border-radius: 10px;
@@ -81,54 +82,39 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
-.post-header {
+.event-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  color: #444;
+  font-weight: 600;
 }
 
-.post-author {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.post-author img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
-
-.post-actions button {
-  background: #eee;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 6px;
-  margin-left: 5px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.post-actions button:hover {
-  background: #ddd;
-}
-
-.post-content {
-  margin-top: 10px;
-  line-height: 1.5;
+.event-description {
+  margin: 8px 0;
   color: #333;
+  line-height: 1.4;
 }
 
-.post-image {
-  width: 100%;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-.post-stats {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
+.event-location {
   color: #666;
   font-size: 0.9rem;
+}
+
+.event-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.event-actions button {
+  background: #eee;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.event-actions button:hover {
+  background: #ddd;
 }

@@ -54,6 +54,16 @@ export default function App() {
           <Route path="/clubs/new" element={<CreateClub />} />
         ) : null}
 
+        <Route
+          path="/dashboard/*"
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        />
+
+
         </Routes>
       </main>
     </div>

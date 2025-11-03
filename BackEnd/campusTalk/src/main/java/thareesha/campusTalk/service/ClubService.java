@@ -3,9 +3,11 @@ package thareesha.campusTalk.service;
 
 import thareesha.campusTalk.model.Club;
 import thareesha.campusTalk.model.ClubMember;
+import thareesha.campusTalk.model.University;
 import thareesha.campusTalk.model.User;
 import thareesha.campusTalk.repository.ClubMemberRepository;
 import thareesha.campusTalk.repository.ClubRepository;
+import thareesha.campusTalk.repository.UniversityRepository;
 import thareesha.campusTalk.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,10 @@ public class ClubService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private UniversityService universityService;
+
 
     public List<Club> getAllClubs() {
         return clubRepository.findAll();
@@ -46,6 +52,19 @@ public class ClubService {
     public Club createClub(Club club) {
         return clubRepository.save(club);
     }
+    
+    
+    
+    @Autowired
+    private UniversityRepository universityRepository;
+
+    public University findUniversityById(Long id) {
+        return universityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("University not found with id: " + id));
+    }
+
+    
+    
 
     public Club updateClub(Long id, Club updatedClub) {
         return clubRepository.findById(id).map(club -> {
@@ -111,5 +130,58 @@ public class ClubService {
         Club club = getClubById(clubId);
         club.getMembers().removeIf(cm -> cm.getUser().getId().equals(userId));
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+ // ────────────────────────────────────────────────
+ // ❤️ JOIN / LEAVE CLUB (Followers Handling)
+ // ────────────────────────────────────────────────
+ public boolean toggleJoinClub(Long clubId, Long userId) {
+     Club club = getClubById(clubId);
+     User user = userRepository.findById(userId)
+             .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+     boolean joined;
+     if (club.getFollowers().contains(user)) {
+         club.getFollowers().remove(user);
+         joined = false;
+     } else {
+         club.getFollowers().add(user);
+         joined = true;
+     }
+     clubRepository.save(club);
+     return joined;
+ }
+
+ // ────────────────────────────────────────────────
+ // 📜 Get Clubs Joined by User
+ // ────────────────────────────────────────────────
+ public List<Club> getJoinedClubs(Long userId) {
+     User user = userRepository.findById(userId)
+             .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+     return user.getFollowedClubs().stream().toList();
+ }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 }

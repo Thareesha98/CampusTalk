@@ -3,14 +3,6 @@ import api from "../../api";
 import { AuthContext } from "../../context/AuthContext";
 import "./Clubs.css";
 
-/*
-  Clubs Page — CampusTalk
-  ✅ Fetches all clubs (/api/clubs)
-  ✅ Filter by university (/api/universities)
-  ✅ Search clubs by name (/api/clubs/search?query=)
-  ✅ Join / Leave clubs (POST /api/clubs/{id}/join)
-*/
-
 export default function Clubs() {
   const { user } = useContext(AuthContext);
   const [clubs, setClubs] = useState([]);
@@ -20,34 +12,51 @@ export default function Clubs() {
   const [loading, setLoading] = useState(false);
   const [joiningClub, setJoiningClub] = useState(null);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
-    loadClubs();
-    api.get("/universities").then((res) => setUniversities(res.data));
+    loadAllData();
   }, []);
 
-  const loadClubs = (uni = selectedUni, q = search) => {
+  const loadAllData = async () => {
     setLoading(true);
-    let endpoint = "/clubs";
-    if (uni !== "all") endpoint = `/clubs/university/${uni}`;
-    if (q) endpoint = `/clubs/search?query=${encodeURIComponent(q)}`;
-    api
-      .get(endpoint)
-      .then((res) => setClubs(res.data))
-      .catch(() => setClubs([]))
-      .finally(() => setLoading(false));
+    try {
+      // 1️⃣ Fetch all clubs
+      const clubsRes = await api.get("/clubs");
+      let allClubs = clubsRes.data;
+
+      // 2️⃣ Fetch clubs that user has joined
+      const joinedRes = await api.get("/clubs/joined", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const joinedIds = joinedRes.data.map((c) => c.id);
+
+      // 3️⃣ Merge joined status
+      const merged = allClubs.map((club) => ({
+        ...club,
+        joined: joinedIds.includes(club.id),
+      }));
+
+      setClubs(merged);
+
+      // 4️⃣ Load universities
+      const uniRes = await api.get("/universities");
+      setUniversities(uniRes.data);
+    } catch (err) {
+      console.error("❌ Failed to load clubs/universities:", err);
+      setClubs([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleJoin = async (clubId) => {
     try {
       setJoiningClub(clubId);
       await api.post(`/clubs/${clubId}/join`, { userId: user.id });
-      setClubs((prev) =>
-        prev.map((c) =>
-          c.id === clubId ? { ...c, joined: !c.joined } : c
-        )
-      );
+      await loadAllData(); // ✅ Refresh joined state from backend
     } catch (err) {
-      console.error("Join failed:", err);
+      console.error("❌ Join failed:", err);
     } finally {
       setJoiningClub(null);
     }
@@ -61,10 +70,7 @@ export default function Clubs() {
       <div className="club-filters">
         <select
           value={selectedUni}
-          onChange={(e) => {
-            setSelectedUni(e.target.value);
-            loadClubs(e.target.value);
-          }}
+          onChange={(e) => setSelectedUni(e.target.value)}
         >
           <option value="all">All Universities</option>
           {universities.map((u) => (
@@ -79,9 +85,8 @@ export default function Clubs() {
           placeholder="Search clubs..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && loadClubs()}
         />
-        <button className="btn-primary" onClick={() => loadClubs()}>
+        <button className="btn-primary" onClick={loadAllData}>
           Search
         </button>
       </div>
@@ -96,7 +101,7 @@ export default function Clubs() {
               <div key={c.id} className="club-card">
                 <div className="club-banner">
                   <img
-                    src={c.imageUrl || "/club-placeholder.png"}
+                    src={c.profilePicUrl || "/club-placeholder.png"}
                     alt={c.name}
                   />
                 </div>

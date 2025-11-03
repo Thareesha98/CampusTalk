@@ -6,37 +6,36 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
-@Builder
 @Table(name = "events")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Event {
 
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
-
     @Column(columnDefinition = "TEXT")
     private String description;
-
     private String location;
+    private LocalDateTime dateTime;
 
-   
-
-	private LocalDateTime dateTime;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
+    @JsonIgnoreProperties({"posts", "followedClubs", "university", "clubs", "events"})
     private User createdBy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id")
-    private Club club; // <— You added this, which is great!
+    @JsonIgnoreProperties({"events", "followers", "chairman", "posts"})
+    private Club club;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("event")
     private List<RSVP> rsvps;
-    
     
     
     public Long getId() {
@@ -101,5 +100,9 @@ public class Event {
 
 	public void setRsvps(List<RSVP> rsvps) {
 		this.rsvps = rsvps;
+	}
+
+	public Event() {
+		super();
 	}
 }

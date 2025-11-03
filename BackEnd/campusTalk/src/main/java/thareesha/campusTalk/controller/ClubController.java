@@ -1,5 +1,6 @@
 package thareesha.campusTalk.controller;
 
+import thareesha.campusTalk.dto.ClubCreateDTO;
 import thareesha.campusTalk.model.*;
 import thareesha.campusTalk.repository.ClubRepository;
 import thareesha.campusTalk.security.JwtService;
@@ -10,11 +11,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/clubs")
-@CrossOrigin
+@CrossOrigin(origins = "*")
 public class ClubController {
 
     @Autowired private ClubService clubService;
@@ -28,74 +30,176 @@ public class ClubController {
     // 📜 Get All Clubs
     // ────────────────────────────────────────────────
     @GetMapping
-    public List<Club> getAllClubs() {
-        return clubService.getAllClubs();
+    public ResponseEntity<List<Club>> getAllClubs() {
+        return ResponseEntity.ok(clubService.getAllClubs());
     }
 
     // ────────────────────────────────────────────────
     // 📜 Get Specific Club
     // ────────────────────────────────────────────────
     @GetMapping("/{id}")
-    public Club getClub(@PathVariable Long id) {
-        return clubService.getClubById(id);
+    public ResponseEntity<?> getClub(@PathVariable Long id) {
+        try {
+            Club club = clubService.getClubById(id);
+            return ResponseEntity.ok(club);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ────────────────────────────────────────────────
     // 🏗 Create a Club
     // ────────────────────────────────────────────────
+    
+    
+    
+    
+//    
+//    @PostMapping
+//    public ResponseEntity<?> createClub(@RequestBody ClubCreateDTO dto, @RequestHeader("Authorization") String tokenHeader) {
+//        String token = tokenHeader.substring(7);
+//        String email = jwtService.extractEmail(token);
+//        User creator = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        Club club = new Club();
+//        club.setName(dto.getName());
+//        club.setDescription(dto.getDescription());
+//        club.setChairman(creator);
+//
+//        // ✅ Find university from ID
+//        University uni = clubService.findUniversityById(dto.getUniversityId());
+//        club.setUniversity(uni);
+//
+//        Club saved = clubService.createClub(club);
+//        return ResponseEntity.ok(saved);
+//    }
+
+    
+    /*
     @PreAuthorize("hasAnyRole('ADMIN', 'CHAIRMAN')")
     @PostMapping
-    public ResponseEntity<?> createClub(@RequestBody Club club, @RequestHeader("Authorization") String tokenHeader) {
+    public ResponseEntity<?> createClub(
+            @RequestBody ClubCreateDTO dto,
+            @RequestHeader("Authorization") String tokenHeader) {
+
         String token = tokenHeader.substring(7);
         String email = jwtService.extractEmail(token);
         User creator = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Chairman can only create a club for their own university
+        // 🧩 Build new Club entity safely
+        Club club = new Club();
+        club.setName(dto.getName());
+        club.setDescription(dto.getDescription());
+        club.setProfilePicUrl(dto.getProfilePicUrl());
+
+        // 🧠 Handle University assignment
         if (creator.getRole().equals("CHAIRMAN")) {
-            club.setChairman(creator);
+            // chairman’s own university
+            if (creator.getUniversity() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Chairman must belong to a university"));
+            }
             club.setUniversity(creator.getUniversity());
+            club.setChairman(creator);
+
+        } else if (creator.getRole().equals("ADMIN")) {
+            // admin may specify target university manually
+            if (dto.getUniversityId() != null) {
+                University uni = clubService.findUniversityById(dto.getUniversityId());
+                club.setUniversity(uni);
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("error", "University ID required for admin"));
+            }
+            club.setChairman(creator); // optional: may later assign real chairman
         }
+
+        // 🧹 Ensure no transient child collections cause null-ID issues
+        club.setEvents(new ArrayList<>());
+        club.setMembers(new ArrayList<>());
+        club.setFollowers(new HashSet<>());
 
         Club saved = clubService.createClub(club);
         return ResponseEntity.ok(saved);
     }
+*/
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
+    
+    
+    
+    
+    
     // ────────────────────────────────────────────────
     // ✏️ Update Club (Chairman or Admin)
     // ────────────────────────────────────────────────
-    @PreAuthorize("hasAnyRole('ADMIN', 'CHAIRMAN')")
-    @PutMapping("/{id}")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateClub(
             @PathVariable Long id,
-            @RequestBody Club updatedClub,
-            @RequestHeader("Authorization") String tokenHeader) {
+            @RequestParam("name") String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ) {
+        try {
+            Club club = clubRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Club not found"));
 
-        String token = tokenHeader.substring(7);
-        String email = jwtService.extractEmail(token);
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            club.setName(name);
+            club.setDescription(description);
 
-        Club existingClub = clubService.getClubById(id);
+            if (file != null && !file.isEmpty()) {
+                String logoUrl = s3Service.uploadFile(file, "club-logos/");
+                club.setProfilePicUrl(logoUrl);
+            }
 
-        if (user.getRole().equals("CHAIRMAN") && !existingClub.getChairman().getId().equals(user.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Only the chairman of this club can update it."));
+            Club updated = clubRepository.save(club);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to update club: " + e.getMessage()));
         }
-
-        existingClub.setName(updatedClub.getName());
-        existingClub.setDescription(updatedClub.getDescription());
-        Club saved = clubRepository.save(existingClub);
-        return ResponseEntity.ok(saved);
     }
+
+    
+    
+    
+    
+    
+    
+    
 
     // ────────────────────────────────────────────────
     // 🗑 Delete Club (Admin only)
     // ────────────────────────────────────────────────
-    @PreAuthorize("hasRole('ADMIN')")
+    
+    @PreAuthorize("hasAnyRole('ADMIN', 'CHAIRMAN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteClub(@PathVariable Long id) {
-        clubService.deleteClub(id);
+        if (!clubRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Club not found"));
+        }
+        clubRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("message", "Club deleted successfully"));
     }
 
@@ -108,11 +212,14 @@ public class ClubController {
     }
 
     // ────────────────────────────────────────────────
-    // ❤️ Follow a Club (Student/Chairman)
+    // ❤️ Follow / Unfollow Club (Student/Chairman)
     // ────────────────────────────────────────────────
     @PreAuthorize("hasAnyRole('STUDENT', 'CHAIRMAN')")
     @PostMapping("/{clubId}/follow")
-    public ResponseEntity<?> followClub(@PathVariable Long clubId, @RequestHeader("Authorization") String tokenHeader) {
+    public ResponseEntity<?> followClub(
+            @PathVariable Long clubId,
+            @RequestHeader("Authorization") String tokenHeader) {
+
         String token = tokenHeader.substring(7);
         String email = jwtService.extractEmail(token);
         User follower = userService.findByEmail(email).orElseThrow();
@@ -124,12 +231,12 @@ public class ClubController {
         return ResponseEntity.ok(Map.of("message", "You are now following " + club.getName()));
     }
 
-    // ────────────────────────────────────────────────
-    // 💔 Unfollow Club
-    // ────────────────────────────────────────────────
     @PreAuthorize("hasAnyRole('STUDENT', 'CHAIRMAN')")
     @PostMapping("/{clubId}/unfollow")
-    public ResponseEntity<?> unfollowClub(@PathVariable Long clubId, @RequestHeader("Authorization") String tokenHeader) {
+    public ResponseEntity<?> unfollowClub(
+            @PathVariable Long clubId,
+            @RequestHeader("Authorization") String tokenHeader) {
+
         String token = tokenHeader.substring(7);
         String email = jwtService.extractEmail(token);
         User follower = userService.findByEmail(email).orElseThrow();
@@ -152,7 +259,7 @@ public class ClubController {
     }
 
     // ────────────────────────────────────────────────
-    // 🖼 Upload Club Profile Picture (Chairman only)
+    // 🖼 Upload Club Profile Picture (Chairman/Admin)
     // ────────────────────────────────────────────────
     @PreAuthorize("hasAnyRole('ADMIN','CHAIRMAN')")
     @PostMapping("/{clubId}/upload-profile-pic")
@@ -161,21 +268,147 @@ public class ClubController {
             @RequestParam("file") MultipartFile file,
             @RequestHeader("Authorization") String tokenHeader) {
 
-        String token = tokenHeader.substring(7);
-        String email = jwtService.extractEmail(token);
-        User user = userService.findByEmail(email).orElseThrow();
+        try {
+            String token = tokenHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+            User user = userService.findByEmail(email).orElseThrow();
 
-        Club club = clubService.getClubById(clubId);
+            Club club = clubService.getClubById(clubId);
 
-        if (user.getRole().equals("CHAIRMAN") && !club.getChairman().getId().equals(user.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Only chairman can update club picture"));
+            if ("CHAIRMAN".equals(user.getRole()) &&
+                !club.getChairman().getId().equals(user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Only this club’s chairman can update the picture"));
+            }
+
+            String imageUrl = s3Service.uploadFile(file, "club-profile-pics/");
+            club.setProfilePicUrl(imageUrl);
+            clubRepository.save(club);
+
+            return ResponseEntity.ok(Map.of("message", "Club profile picture updated", "url", imageUrl));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
-
-        String imageUrl = s3Service.uploadFile(file, "club-profile-pics/");
-        club.setProfilePicUrl(imageUrl);
-        clubRepository.save(club);
-
-        return ResponseEntity.ok(Map.of("message", "Club profile picture updated", "url", imageUrl));
     }
+    
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
+    public ResponseEntity<?> createClub(
+            @RequestParam("name") String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestHeader("Authorization") String tokenHeader
+    ) {
+        try {
+            String token = tokenHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+            User creator = userService.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String logoUrl = null;
+
+            // 🖼 Upload logo to S3 if provided
+            if (file != null && !file.isEmpty()) {
+                logoUrl = s3Service.uploadFile(file, "club-logos/");
+            }
+
+            Club club = new Club();
+            club.setName(name);
+            club.setDescription(description);
+            club.setProfilePicUrl(logoUrl);
+            club.setUniversity(creator.getUniversity());
+
+            // ✅ Automatically set chairman if user is chairman
+            if ("CHAIRMAN".equals(creator.getRole())) {
+                club.setChairman(creator);
+            }
+
+            Club saved = clubRepository.save(club);
+            return ResponseEntity.ok(saved);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create club: " + e.getMessage()));
+        }
+    }
+
+ // ────────────────────────────────────────────────
+ // ❤️ JOIN / LEAVE CLUB (Toggle for Students)
+ // ────────────────────────────────────────────────
+ @PreAuthorize("hasAnyRole('STUDENT', 'CHAIRMAN')")
+ @PostMapping("/{clubId}/join")
+ public ResponseEntity<?> joinOrLeaveClub(
+         @PathVariable Long clubId,
+         @RequestHeader("Authorization") String tokenHeader) {
+     try {
+         String token = tokenHeader.substring(7);
+         String email = jwtService.extractEmail(token);
+         User user = userService.findByEmail(email)
+                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+         boolean joined = clubService.toggleJoinClub(clubId, user.getId());
+
+         String message = joined ? "Joined club successfully" : "Left the club";
+         return ResponseEntity.ok(Map.of(
+                 "message", message,
+                 "joined", joined
+         ));
+     } catch (Exception e) {
+         e.printStackTrace();
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body(Map.of("error", "Failed to join/leave club: " + e.getMessage()));
+     }
+ }
+
+ // ────────────────────────────────────────────────
+ // 📜 Get All Clubs Joined by the Current User
+ // ────────────────────────────────────────────────
+ 
+ 
+ @PreAuthorize("isAuthenticated()")
+ @GetMapping("/joined")
+ public ResponseEntity<?> getUserJoinedClubs(@RequestHeader("Authorization") String tokenHeader) {
+     try {
+         String token = tokenHeader.substring(7);
+         String email = jwtService.extractEmail(token);
+         User user = userService.findByEmail(email)
+                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+         List<Club> joinedClubs = clubService.getJoinedClubs(user.getId());
+
+         List<Map<String, Object>> result = joinedClubs.stream().map(c -> {
+             Map<String, Object> map = new HashMap<>();
+             map.put("id", c.getId());
+             map.put("name", c.getName());
+             map.put("description", c.getDescription());
+             map.put("profilePicUrl", c.getProfilePicUrl());
+             map.put("university", c.getUniversity() != null ? c.getUniversity().getName() : null);
+             return map;
+         }).toList();
+
+         return ResponseEntity.ok(result);
+     } catch (Exception e) {
+         e.printStackTrace();
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                 .body(Map.of("error", "Failed to fetch joined clubs: " + e.getMessage()));
+     }
+ }
+
+ 
+ 
+ 
+
+
 }
+
+
+
+
+
+
+
+
+

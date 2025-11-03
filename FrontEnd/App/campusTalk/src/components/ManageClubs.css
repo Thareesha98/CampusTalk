@@ -1,39 +1,39 @@
-.club-posts-manager {
+.manage-clubs {
   padding: 25px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.07);
-  max-width: 700px;
+  max-width: 800px;
   margin: auto;
 }
 
 .manager-title {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  color: #222;
   text-align: center;
+  margin-bottom: 20px;
+  color: #222;
 }
 
-.post-form {
+.club-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 24px;
 }
 
-.post-form textarea {
-  min-height: 100px;
+.club-form input,
+.club-form textarea {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 1rem;
-  resize: vertical;
+  color: #443e3ec2;
 }
 
-.post-form input[type="file"] {
-  border: none;
-  font-size: 0.9rem;
+.club-form textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
 .form-actions {
@@ -67,68 +67,53 @@
   background: #c62828;
 }
 
-.posts-list {
+.clubs-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.post-card {
+.club-card {
   background: #fafafa;
   border: 1px solid #eee;
   border-radius: 10px;
   padding: 15px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-}
-
-.post-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.post-author {
+.club-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.post-author img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.club-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #ccc;
 }
 
-.post-actions button {
+.club-actions button {
   background: #eee;
   border: none;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
-  margin-left: 5px;
+  margin-left: 6px;
   cursor: pointer;
   font-size: 0.9rem;
 }
 
-.post-actions button:hover {
+.club-actions button:hover {
   background: #ddd;
 }
 
-.post-content {
-  margin-top: 10px;
-  line-height: 1.5;
-  color: #333;
-}
-
-.post-image {
-  width: 100%;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-.post-stats {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  color: #666;
-  font-size: 0.9rem;
+.no-clubs {
+  text-align: center;
+  color: #777;
+  font-style: italic;
 }

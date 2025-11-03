@@ -1,169 +1,152 @@
-// src/components/RSVPManager.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import api from "../api";
+import { AuthContext } from "../context/AuthContext";
 import "./RSVPManager.css";
 
-export default function RSVPManager({ clubId }) {
+export default function RSVPManager() {
+  const [clubs, setClubs] = useState([]);
+  const [selectedClub, setSelectedClub] = useState("");
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState("");
   const [rsvps, setRsvps] = useState([]);
-  const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
+  const { user } = useContext(AuthContext);
 
-  // 🔹 Load all club events
+  // Load clubs
   useEffect(() => {
-    api
-      .get(`/events/club/${clubId}`)
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error("Failed to load events:", err));
-  }, [clubId]);
+    fetchClubs();
+  }, []);
 
-  // 🔹 Fetch RSVPs for selected event
-  const loadRsvps = async (eventId) => {
-    setLoading(true);
+  const fetchClubs = async () => {
     try {
-      const res = await api.get(`/events/${eventId}/rsvps`, {
+      const res = await api.get("/clubs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClubs(res.data);
+    } catch (err) {
+      console.error("❌ Failed to load clubs:", err);
+    }
+  };
+
+  // Load events for selected club
+  useEffect(() => {
+    if (selectedClub) fetchEvents(selectedClub);
+  }, [selectedClub]);
+
+  const fetchEvents = async (clubId) => {
+    try {
+      const res = await api.get(`/events/club/${clubId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEvents(res.data);
+    } catch (err) {
+      console.error("❌ Failed to load events:", err);
+    }
+  };
+
+  // Load RSVPs for selected event
+  useEffect(() => {
+    if (selectedEvent) fetchRSVPs(selectedEvent);
+  }, [selectedEvent]);
+
+  const fetchRSVPs = async (eventId) => {
+    try {
+      const res = await api.get(`/rsvps/event/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRsvps(res.data);
     } catch (err) {
-      console.error("Failed to load RSVPs:", err);
-    } finally {
-      setLoading(false);
+      console.error("❌ Failed to load RSVPs:", err);
     }
   };
 
-  // 🔹 Handle attendance toggle
-  const toggleAttendance = async (rsvpId, currentStatus) => {
+  // User marks RSVP
+  const handleRSVP = async (status) => {
+    if (!selectedEvent) return alert("Select an event first!");
     try {
-      const res = await api.put(
-        `/rsvps/${rsvpId}/attendance`,
-        { attended: !currentStatus },
+      const res = await api.post(
+        "/rsvps",
+        { eventId: selectedEvent, status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setRsvps(
-        rsvps.map((r) =>
-          r.id === rsvpId ? { ...r, attended: res.data.attended } : r
-        )
-      );
+      alert(`✅ You marked as "${status}"`);
+      fetchRSVPs(selectedEvent);
     } catch (err) {
-      console.error("Failed to update attendance:", err);
-      alert("❌ Could not update attendance.");
+      console.error("❌ Failed to RSVP:", err);
+      alert("Failed to save RSVP.");
     }
   };
 
-  // 🔹 Remove RSVP
-  const removeRsvp = async (rsvpId) => {
-    if (!window.confirm("Remove this RSVP?")) return;
+  // Delete RSVP (admin)
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this RSVP?")) return;
     try {
-      await api.delete(`/rsvps/${rsvpId}`, {
+      await api.delete(`/rsvps/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRsvps(rsvps.filter((r) => r.id !== rsvpId));
-      alert("🗑 RSVP removed!");
+      alert("🗑 RSVP deleted");
+      fetchRSVPs(selectedEvent);
     } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // 🔹 Export RSVPs as CSV
-  const exportCsv = async (eventId) => {
-    try {
-      const res = await api.get(`/events/${eventId}/export-rsvps`, {
-        responseType: "blob",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `event_${eventId}_rsvps.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      console.error("Failed to export CSV:", err);
-      alert("❌ Could not export RSVPs.");
+      console.error("❌ Failed to delete RSVP:", err);
     }
   };
 
   return (
     <div className="rsvp-manager">
-      <h3>🎟 RSVP Manager</h3>
+      <h2 className="manager-title">RSVP Manager</h2>
 
-      {/* Select Event */}
-      <div className="event-selector">
-        <label>Select Event:</label>
+      {/* Club selection */}
+      <div className="selectors">
         <select
-          onChange={(e) => {
-            const eventId = e.target.value;
-            setSelectedEvent(eventId);
-            if (eventId) loadRsvps(eventId);
-          }}
+          value={selectedClub}
+          onChange={(e) => setSelectedClub(e.target.value)}
         >
-          <option value="">-- Choose an event --</option>
-          {events.map((ev) => (
-            <option key={ev.id} value={ev.id}>
-              {ev.title}
+          <option value="">Select Club</option>
+          {clubs.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
             </option>
           ))}
         </select>
 
-        {selectedEvent && (
-          <button
-            className="btn-export"
-            onClick={() => exportCsv(selectedEvent)}
-          >
-            ⬇ Export CSV
-          </button>
-        )}
+        <select
+          value={selectedEvent}
+          onChange={(e) => setSelectedEvent(e.target.value)}
+          disabled={!selectedClub}
+        >
+          <option value="">Select Event</option>
+          {events.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.title}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* RSVP Table */}
-      {loading ? (
-        <p>Loading RSVPs...</p>
-      ) : rsvps.length === 0 ? (
-        <p className="muted">No RSVPs found for this event.</p>
-      ) : (
-        <table className="rsvp-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Participant</th>
-              <th>Email</th>
-              <th>University</th>
-              <th>Attended</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rsvps.map((r, i) => (
-              <tr key={r.id}>
-                <td>{i + 1}</td>
-                <td>{r.user?.name}</td>
-                <td>{r.user?.email}</td>
-                <td>{r.user?.university?.name || "—"}</td>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={r.attended}
-                    onChange={() => toggleAttendance(r.id, r.attended)}
-                  />
-                </td>
-                <td>
-                  <button
-                    className="btn-delete"
-                    onClick={() => removeRsvp(r.id)}
-                  >
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {/* RSVP buttons for users */}
+      <div className="rsvp-actions">
+        <button onClick={() => handleRSVP("GOING")}>✅ Going</button>
+        <button onClick={() => handleRSVP("INTERESTED")}>⭐ Interested</button>
+        <button onClick={() => handleRSVP("NOT_GOING")}>❌ Not Going</button>
+      </div>
+
+      {/* RSVP list */}
+      <div className="rsvp-list">
+        {rsvps.length === 0 ? (
+          <p>No RSVPs for this event yet.</p>
+        ) : (
+          rsvps.map((r) => (
+            <div className="rsvp-card" key={r.id}>
+              <p>
+                <strong>{r.user?.name}</strong> — {r.status}
+              </p>
+              {user?.role === "ADMIN" && (
+                <button onClick={() => handleDelete(r.id)}>🗑 Delete</button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
