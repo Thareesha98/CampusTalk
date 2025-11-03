@@ -2,6 +2,11 @@ package thareesha.campusTalk.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import thareesha.campusTalk.model.User;
+import thareesha.campusTalk.repository.UserRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -9,11 +14,15 @@ import java.util.Date;
 
 @Service
 public class JwtService {
+	
+	
+	@Autowired
+	UserRepository userRepository;
 
     private static final String SECRET = "supersecretkeyforjwtsigning123456789012345";
 
     // Short-lived access token (e.g., 15 minutes)
-    private static final long ACCESS_EXPIRATION_TIME = 1000 * 60 * 15;
+    private static final long ACCESS_EXPIRATION_TIME = 1000 * 60 * 30;
 
     // Long-lived refresh token (e.g., 7 days)
     private static final long REFRESH_EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 7;
@@ -41,6 +50,8 @@ public class JwtService {
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+    
+    
 
     public String extractEmail(String token) {
         return Jwts.parserBuilder()
@@ -55,6 +66,27 @@ public class JwtService {
         String extracted = extractEmail(token);
         return (extracted.equals(email) && !isTokenExpired(token));
     }
+    
+    
+    
+    
+    
+    public Long extractUserIdFromRequest(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String email = extractEmail(token);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+            return user.getId();
+        }
+        throw new RuntimeException("Invalid or missing token");
+    }
+
+    
+    
+    
+    
 
     private boolean isTokenExpired(String token) {
         Date expiration = Jwts.parserBuilder()

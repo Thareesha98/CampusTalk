@@ -6,6 +6,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import thareesha.campusTalk.model.Event;
 
 
@@ -19,11 +22,13 @@ public class RSVP {
 
     @ManyToOne
     @JoinColumn(name = "event_id")
+    @JsonBackReference 
     private Event event;
 
 
 	@ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"posts", "followedClubs", "university"})
     private User user;
 
     private String status; // "going" or "interested"

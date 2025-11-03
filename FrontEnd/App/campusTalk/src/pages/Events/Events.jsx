@@ -3,43 +3,66 @@ import api from "../../api";
 import { AuthContext } from "../../context/AuthContext";
 import "./Events.css";
 
-/*
-  Events Page — CampusTalk
-  ✅ Fetches events from /api/events
-  ✅ Displays event name, date, description, club/university
-  ✅ Join/Unjoin event integration (/api/events/{id}/join)
-  ✅ Shows live countdown timer
-*/
-
 export default function Events() {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
-  const [joiningEvent, setJoiningEvent] = useState(null);
+  const [updating, setUpdating] = useState(null);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     loadEvents();
   }, []);
 
-  const loadEvents = () => {
-    api
-      .get("/events")
-      .then((res) => setEvents(res.data))
-      .catch(() => setEvents([]));
-  };
+  const loadEvents = async () => {
+  try {
+    // 🟩 Always load events
+    const res = await api.get("/events", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const eventsData = res.data;
 
-  const handleJoin = async (eventId) => {
+    // 🟨 Try to load RSVP info, but if it fails, continue normally
+    let rsvpMap = {};
     try {
-      setJoiningEvent(eventId);
-      await api.post(`/events/${eventId}/join`, { userId: user.id });
+      const rsvpRes = await api.get("/rsvp/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      rsvpRes.data.forEach((r) => (rsvpMap[r.event.id] = r.status));
+    } catch (innerErr) {
+      console.warn("⚠️ RSVP info not found (maybe /rsvp/my missing)");
+    }
+
+    const merged = eventsData.map((e) => ({
+      ...e,
+      rsvpStatus: rsvpMap[e.id] || null,
+    }));
+
+    setEvents(merged);
+  } catch (err) {
+    console.error("❌ Failed to load events:", err);
+    setEvents([]);
+  }
+};
+
+
+  const handleRSVP = async (eventId, status) => {
+    try {
+      setUpdating(eventId);
+      await api.post(
+        `/rsvp/${eventId}/respond`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       setEvents((prev) =>
         prev.map((e) =>
-          e.id === eventId ? { ...e, joined: !e.joined } : e
+          e.id === eventId ? { ...e, rsvpStatus: status } : e
         )
       );
     } catch (err) {
-      console.error("Failed to join event:", err);
+      console.error("❌ RSVP failed:", err);
     } finally {
-      setJoiningEvent(null);
+      setUpdating(null);
     }
   };
 
@@ -66,14 +89,14 @@ export default function Events() {
             <div key={e.id} className="event-card">
               <div className="event-banner">
                 <img src={e.imageUrl || "/event-placeholder.png"} alt={e.title} />
-                <div className="event-timeleft">{timeLeft(e.date)}</div>
+                <div className="event-timeleft">{timeLeft(e.dateTime)}</div>
               </div>
 
               <div className="event-info">
                 <h3>{e.title}</h3>
                 <p className="muted">
-                  {new Date(e.date).toLocaleDateString()} •{" "}
-                  {new Date(e.date).toLocaleTimeString([], {
+                  {new Date(e.dateTime).toLocaleDateString()} •{" "}
+                  {new Date(e.dateTime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -89,7 +112,7 @@ export default function Events() {
                   {e.club ? (
                     <>
                       <img
-                        src={e.club.imageUrl || "/club-placeholder.png"}
+                        src={e.club.profilePicUrl || "/club-placeholder.png"}
                         alt={e.club.name}
                       />
                       <span>{e.club.name}</span>
@@ -99,17 +122,27 @@ export default function Events() {
                   )}
                 </div>
 
-                <button
-                  className={`btn-join ${e.joined ? "joined" : ""}`}
-                  onClick={() => handleJoin(e.id)}
-                  disabled={joiningEvent === e.id}
-                >
-                  {joiningEvent === e.id
-                    ? "Processing..."
-                    : e.joined
-                    ? "Joined"
-                    : "Join"}
-                </button>
+                <div className="rsvp-actions">
+                  <button
+                    className={`btn-rsvp ${
+                      e.rsvpStatus === "INTERESTED" ? "active interested" : ""
+                    }`}
+                    onClick={() => handleRSVP(e.id, "INTERESTED")}
+                    disabled={updating === e.id}
+                  >
+                    ⭐ Interested
+                  </button>
+
+                  <button
+                    className={`btn-rsvp ${
+                      e.rsvpStatus === "GOING" ? "active going" : ""
+                    }`}
+                    onClick={() => handleRSVP(e.id, "GOING")}
+                    disabled={updating === e.id}
+                  >
+                    ✅ Going
+                  </button>
+                </div>
               </div>
             </div>
           ))}

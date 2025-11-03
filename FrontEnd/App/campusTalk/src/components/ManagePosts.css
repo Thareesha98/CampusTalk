@@ -1,18 +1,18 @@
-.club-posts-manager {
+.manage-posts {
   padding: 25px;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.07);
-  max-width: 700px;
+  max-width: 750px;
   margin: auto;
 }
 
 .manager-title {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  color: #222;
   text-align: center;
+  margin-bottom: 20px;
+  color: #222;
 }
 
 .post-form {
@@ -22,18 +22,19 @@
   margin-bottom: 24px;
 }
 
-.post-form textarea {
-  min-height: 100px;
+.post-form select,
+.post-form textarea,
+.post-form input[type="file"] {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 1rem;
-  resize: vertical;
+  color: #443e3ec2;
 }
 
-.post-form input[type="file"] {
-  border: none;
-  font-size: 0.9rem;
+.post-form textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
 .form-actions {
@@ -85,50 +86,37 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.post-author {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.post-author img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
-
-.post-actions button {
-  background: #eee;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 6px;
-  margin-left: 5px;
-  cursor: pointer;
+  color: #555;
   font-size: 0.9rem;
-}
-
-.post-actions button:hover {
-  background: #ddd;
+  margin-bottom: 8px;
 }
 
 .post-content {
-  margin-top: 10px;
-  line-height: 1.5;
   color: #333;
+  line-height: 1.4;
+  margin-bottom: 8px;
 }
 
 .post-image {
   width: 100%;
   border-radius: 8px;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-.post-stats {
-  margin-top: 10px;
+.post-footer {
   display: flex;
-  justify-content: space-between;
-  color: #666;
-  font-size: 0.9rem;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.post-footer button {
+  background: #eee;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.post-footer button:hover {
+  background: #ddd;
 }

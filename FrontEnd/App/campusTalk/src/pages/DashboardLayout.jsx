@@ -1,109 +1,86 @@
-// src/pages/DashboardLayout.jsx
-import React, { useState, useEffect, useContext } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useContext } from "react";
+import { NavLink, Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import ClubPostsManager from "../components/ClubPostsManager";
-import ClubEventsManager from "../components/ClubEventsManager";
-import RSVPManager from "../components/RSVPManager";
 import ClubStats from "../components/ClubStats";
-import api from "../api";
+import RSVPManager from "../components/RSVPManager";
+import ManageClubs from "../components/ManageClubs";
 import "./DashboardLayout.css";
 
+import ManagePosts from "../components/ManagePosts";
+import ManageEvents from "../components/ManageEvents";
+
 export default function DashboardLayout() {
-  const { id } = useParams(); // clubId from route
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
 
-  const [club, setClub] = useState(null);
-  const [activeTab, setActiveTab] = useState("posts");
-
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    // Prevent access for non-chairman/admin
-    if (!["CHAIRMAN", "ADMIN"].includes(user.role)) {
-      navigate("/");
-      return;
-    }
-
-    loadClub();
-  }, [user, id]);
-
-  const loadClub = async () => {
-    try {
-      const res = await api.get(`/clubs/${id}`);
-      setClub(res.data);
-    } catch (err) {
-      console.error("Failed to load club:", err);
-    }
-  };
-
-  if (!club) {
-    return (
-      <div className="dashboard-layout">
-        <p>Loading club dashboard...</p>
-      </div>
-    );
+  if (!user || (user.role !== "CHAIRMAN" && user.role !== "ADMIN")) {
+    return <Navigate to="/" replace />;
   }
 
   return (
-    <div className="dashboard-layout">
-      {/* Sidebar */}
+    <div className="dashboard-container">
+      {/* ───────────── Sidebar ───────────── */}
       <aside className="dashboard-sidebar">
-        <div className="sidebar-header">
-          <img
-            src={club.profilePicUrl || "/club-placeholder.png"}
-            alt="Club"
-            className="club-avatar"
-          />
-          <h2>{club.name}</h2>
-          <p className="muted">{club.university?.name}</p>
-        </div>
+        <h2>📊 Dashboard</h2>
 
-        <nav className="sidebar-nav">
-          <button
-            className={activeTab === "posts" ? "active" : ""}
-            onClick={() => setActiveTab("posts")}
+        <nav>
+          <NavLink
+            to="/dashboard/manage-clubs"
+            className={({ isActive }) =>
+              isActive ? "active-link" : "sidebar-link"
+            }
           >
-            📝 Manage Posts
-          </button>
-          <button
-            className={activeTab === "events" ? "active" : ""}
-            onClick={() => setActiveTab("events")}
+            🏛 Manage Clubs
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/manage-posts"
+            className={({ isActive }) =>
+              isActive ? "active-link" : "sidebar-link"
+            }
+          >
+            🗞 Manage Posts
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/manage-events"
+            className={({ isActive }) =>
+              isActive ? "active-link" : "sidebar-link"
+            }
           >
             📅 Manage Events
-          </button>
-          <button
-            className={activeTab === "rsvps" ? "active" : ""}
-            onClick={() => setActiveTab("rsvps")}
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/rsvp-manager"
+            className={({ isActive }) =>
+              isActive ? "active-link" : "sidebar-link"
+            }
           >
-            🎟 RSVP Manager
-          </button>
-          <button
-            className={activeTab === "stats" ? "active" : ""}
-            onClick={() => setActiveTab("stats")}
+            👥 RSVPs
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/stats"
+            className={({ isActive }) =>
+              isActive ? "active-link" : "sidebar-link"
+            }
           >
-
-            <Link to="/clubs/new" className="btn-primary">
-            + Create New Club
-            </Link>
-
-
-            📊 Club Stats
-          </button>
+            📈 Stats
+          </NavLink>
         </nav>
       </aside>
 
-      {/* Main Content */}
-      <main className="dashboard-content">
-        {activeTab === "posts" && <ClubPostsManager clubId={club.id} />}
-        {activeTab === "events" && <ClubEventsManager clubId={club.id} />}
-        {activeTab === "rsvps" && <RSVPManager clubId={club.id} />}
-        {activeTab === "stats" && <ClubStats clubId={club.id} />}
-      </main>
+      {/* ───────────── Content Area ───────────── */}
+      <section className="dashboard-content">
+        <Routes>
+          <Route path="/" element={<h2>Welcome, {user.name} 👋</h2>} />
+          <Route path="manage-clubs" element={<ManageClubs />} />
+          <Route path="manage-posts" element={<ManagePosts />} />
+          <Route path="manage-events" element={<ManageEvents />} />
+          <Route path="rsvp-manager" element={<RSVPManager />} />
+          <Route path="stats" element={<ClubStats />} />
+        </Routes>
+      </section>
     </div>
   );
 }

@@ -7,104 +7,117 @@ export default function ClubPostsManager({ clubId }) {
   const [posts, setPosts] = useState([]);
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const fileRef = useRef();
   const token = localStorage.getItem("token");
 
-  // 🧩 Fetch posts for this club
+  // 🔁 Fetch posts for this club
   useEffect(() => {
-    api
-      .get(`/posts/club/${clubId}`)
-      .then((res) => setPosts(res.data))
-      .catch((err) => console.error("Failed to load posts:", err));
+    fetchClubPosts();
   }, [clubId]);
+
+  const fetchClubPosts = async () => {
+    try {
+      const res = await api.get(`/posts/club/${clubId}`);
+      setPosts(res.data);
+    } catch (err) {
+      console.error("❌ Failed to load posts:", err);
+    }
+  };
 
   // 🖊 Create or update a post
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!clubId) {
+  alert("Missing club ID! Please select or open a club first.");
+  return;
+}
+
 
     if (!content.trim() && !file) {
       alert("Please add content or an image.");
       return;
     }
 
+    setLoading(true);
     const form = new FormData();
     form.append("content", content);
     if (file) form.append("file", file);
 
     try {
       let res;
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      };
 
       if (editingPost) {
-        // 🧩 Edit existing post (if backend supports PUT multipart)
-        res = await api.put(`/posts/${editingPost.id}`, form, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // ✏️ Update existing post
+        res = await api.put(`/posts/${editingPost.id}`, form, { headers });
       } else {
         // 🆕 Create new post
-        res = await api.post(`/posts/club/${clubId}`, form, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        res = await api.post(`/posts/club/${clubId}`, form, { headers });
       }
 
       const newPost = res.data;
-      if (editingPost) {
-        setPosts(posts.map((p) => (p.id === editingPost.id ? newPost : p)));
-        alert("✅ Post updated!");
-      } else {
-        setPosts([newPost, ...posts]);
-        alert("✅ Post created!");
-      }
+      setPosts((prev) =>
+        editingPost
+          ? prev.map((p) => (p.id === editingPost.id ? newPost : p))
+          : [newPost, ...prev]
+      );
 
-      // Reset form
-      setContent("");
-      setFile(null);
-      if (fileRef.current) fileRef.current.value = "";
-      setEditingPost(null);
+      alert(editingPost ? "✅ Post updated!" : "✅ Post created!");
+      resetForm();
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to save post");
+      console.error("❌ Error saving post:", err);
+      alert("Failed to save post. Check console for details.");
+    } finally {
+      setLoading(false);
     }
   };
 
   // 🗑 Delete a post
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
-
     try {
       await api.delete(`/posts/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPosts(posts.filter((p) => p.id !== id));
+      setPosts((prev) => prev.filter((p) => p.id !== id));
       alert("🗑 Post deleted");
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to delete post");
+      console.error("❌ Failed to delete post:", err);
+      alert("Failed to delete post");
     }
   };
 
-  // ✏️ Edit a post
+  // ✏️ Edit mode
   const handleEdit = (post) => {
     setEditingPost(post);
     setContent(post.content);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 🔄 Reset form
+  const resetForm = () => {
+    setContent("");
+    setFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+    setEditingPost(null);
   };
 
   return (
     <div className="club-posts-manager">
-      <h3>Club Posts</h3>
+      <h3 className="manager-title">Club Posts</h3>
 
       {/* Post Form */}
       <form className="post-form" onSubmit={handleSubmit}>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Write a post..."
+          placeholder="Write something interesting..."
         />
         <input
           type="file"
@@ -113,28 +126,31 @@ export default function ClubPostsManager({ clubId }) {
           onChange={(e) => setFile(e.target.files[0])}
         />
 
-        <button className="btn-primary" type="submit">
-          {editingPost ? "Update Post" : "Create Post"}
-        </button>
-        {editingPost && (
-          <button
-            type="button"
-            className="btn-cancel"
-            onClick={() => {
-              setEditingPost(null);
-              setContent("");
-              if (fileRef.current) fileRef.current.value = "";
-            }}
-          >
-            Cancel
+        <div className="form-actions">
+          <button className="btn-primary" type="submit" disabled={loading}>
+            {loading
+              ? "⏳ Saving..."
+              : editingPost
+              ? "Update Post"
+              : "Create Post"}
           </button>
-        )}
+          {editingPost && (
+            <button
+              type="button"
+              className="btn-cancel"
+              onClick={resetForm}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
 
       {/* Posts List */}
       <div className="posts-list">
         {posts.length === 0 ? (
-          <p>No posts yet.</p>
+          <p className="no-posts">No posts yet.</p>
         ) : (
           posts.map((p) => (
             <div className="post-card" key={p.id}>
@@ -146,7 +162,7 @@ export default function ClubPostsManager({ clubId }) {
                   />
                   <div>
                     <strong>{p.user?.name}</strong>
-                    <span>
+                    <span className="post-date">
                       {new Date(p.createdAt).toLocaleString("en-US", {
                         dateStyle: "medium",
                         timeStyle: "short",
@@ -154,6 +170,7 @@ export default function ClubPostsManager({ clubId }) {
                     </span>
                   </div>
                 </div>
+
                 <div className="post-actions">
                   <button onClick={() => handleEdit(p)}>Edit</button>
                   <button onClick={() => handleDelete(p.id)}>Delete</button>
