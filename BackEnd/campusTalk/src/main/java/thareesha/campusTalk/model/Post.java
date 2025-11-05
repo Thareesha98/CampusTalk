@@ -7,6 +7,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "posts")
 public class Post {
@@ -26,15 +29,23 @@ public class Post {
     
     @ManyToOne
     @JoinColumn(name = "club_id") // this column exists in DB
+    @JsonIgnoreProperties({
+        "events", "members", "followers", "university", "chairman", "posts"
+    })
     private Club club; // ← THIS field MUST exist
 
     // Relationships
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({
+        "posts", "password", "university", "clubs", "followers", "followedClubs"
+    })
     private User user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Comment> comments;
+
     
 
 

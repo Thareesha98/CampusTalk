@@ -1,5 +1,7 @@
 package thareesha.campusTalk.controller;
 
+import thareesha.campusTalk.dto.CommentDTO;
+import thareesha.campusTalk.dto.PostResponseDTO;
 import thareesha.campusTalk.model.*;
 import thareesha.campusTalk.repository.*;
 import thareesha.campusTalk.security.JwtService;
@@ -28,6 +30,52 @@ public class PostController {
     @Autowired private JwtService jwtService;
     @Autowired private S3Service s3Service;
 
+    
+    
+ // ────────────────────────────────────────────────
+ // 📰 Get All Posts (For Home Feed)
+ // ────────────────────────────────────────────────
+    @GetMapping
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts() {
+        try {
+            List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+
+            List<PostResponseDTO> postDTOs = posts.stream().map(post -> {
+                // Map comments → CommentDTO list
+                List<CommentDTO> commentDTOs = post.getComments() == null ? List.of() :
+                        post.getComments().stream()
+                                .map(c -> new CommentDTO(
+                                        c.getId(),
+                                        c.getText(),
+                                        c.getCreatedAt(),
+                                        c.getUser() != null ? c.getUser().getName() : "Anonymous",
+                                        c.getUser() != null ? c.getUser().getProfilePicUrl() : null
+                                ))
+                                .toList();
+
+                return new PostResponseDTO(
+                        post.getId(),
+                        post.getContent(),
+                        post.getImageUrl(),
+                        post.getLikes(),
+                        post.getCreatedAt(),
+                        post.getUser() != null ? post.getUser().getName() : "Unknown",
+                        post.getUser() != null ? post.getUser().getProfilePicUrl() : null,
+                        commentDTOs
+                );
+            }).toList();
+
+            return ResponseEntity.ok(postDTOs);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    
+    
     // ────────────────────────────────────────────────
     // 🆕 Create Post
     // ────────────────────────────────────────────────

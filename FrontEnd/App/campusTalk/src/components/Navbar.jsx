@@ -79,7 +79,7 @@ export default function Navbar({ onSearch }) {
             </svg>
             <input
               className="ct-search"
-              placeholder="Search people, clubs, posts or events"
+              placeholder="Search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
@@ -176,9 +176,9 @@ export default function Navbar({ onSearch }) {
             </div>
           ) : (
             <div className="auth-actions">
-              <Link className="btn-outline" to="/login">
+              {/* <Link className="btn-outline" to="/login">
                 Sign in
-              </Link>
+              </Link> */}
               <Link className="btn-primary" to="/register">
                 Sign up
               </Link>

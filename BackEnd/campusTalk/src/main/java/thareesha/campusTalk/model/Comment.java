@@ -3,6 +3,8 @@ package thareesha.campusTalk.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "comments")
 public class Comment {
@@ -21,7 +23,9 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "post_id")
+    @JsonBackReference
     private Post post;
+
 
     // Getters/Setters
     public Long getId() { return id; }

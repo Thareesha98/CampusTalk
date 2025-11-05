@@ -1,42 +1,71 @@
-#root {
-  max-width: 1280px;
+/* src/App.css */
+
+/* Root layout wrapper */
+.app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+  color: #e6f0ff;
+}
+
+/* Main app area */
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Center loading screens or 404 pages */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.2rem;
+  color: var(--muted);
 }
 
-@keyframes logo-spin {
+/* Auth loading spinner/text */
+.auth-loading {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Responsive paddings and layout */
+@media (max-width: 1024px) {
+  .app-main {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding: 0.8rem;
+  }
+}
+
+/* Optional fade-in animation for smoother route transitions */
+.app-main > * {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(6px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
+/* Remove old template stuff */
+.logo,
+.card,
 .read-the-docs {
-  color: #888;
+  display: none;
 }

@@ -10,7 +10,7 @@ export default function Clubs() {
   const [selectedUni, setSelectedUni] = useState("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-  const [joiningClub, setJoiningClub] = useState(null);
+  const [followingClub, setFollowingClub] = useState(null);
 
   const token = localStorage.getItem("token");
 
@@ -25,40 +25,97 @@ export default function Clubs() {
       const clubsRes = await api.get("/clubs");
       let allClubs = clubsRes.data;
 
-      // 2️⃣ Fetch clubs that user has joined
-      const joinedRes = await api.get("/clubs/joined", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const joinedIds = joinedRes.data.map((c) => c.id);
+      // 2️⃣ Enrich with counts + follow status
+      const enriched = await Promise.all(
+        allClubs.map(async (club) => {
+          let memberCount = 0;
+          let eventCount = 0;
+          let followerCount = club.followers ? club.followers.length : 0;
 
-      // 3️⃣ Merge joined status
-      const merged = allClubs.map((club) => ({
-        ...club,
-        joined: joinedIds.includes(club.id),
-      }));
+          // ✅ determine if current user already follows
+          const isFollowing =
+            club.followers &&
+            club.followers.some((f) => f.id === user?.id);
 
-      setClubs(merged);
+          try {
+            const [membersRes, eventsRes] = await Promise.all([
+              api.get(`/clubs/${club.id}/members`),
+              api.get(`/events/club/${club.id}`).catch(() => ({ data: [] })),
+            ]);
+            memberCount = membersRes.data.length;
+            eventCount = eventsRes.data.length;
+          } catch (err) {
+            console.warn(`⚠️ Count fetch failed for club ${club.id}`, err);
+          }
 
-      // 4️⃣ Load universities
+          return {
+            ...club,
+            memberCount,
+            eventCount,
+            followerCount,
+            isFollowing,
+          };
+        })
+      );
+
+      // 3️⃣ Load universities
       const uniRes = await api.get("/universities");
       setUniversities(uniRes.data);
+
+      // 4️⃣ Apply search/filter
+      const filtered = enriched.filter((c) => {
+        const matchesSearch = c.name
+          .toLowerCase()
+          .includes(search.toLowerCase());
+        const matchesUni =
+          selectedUni === "all" || c.university?.id === Number(selectedUni);
+        return matchesSearch && matchesUni;
+      });
+
+      setClubs(filtered);
     } catch (err) {
-      console.error("❌ Failed to load clubs/universities:", err);
+      console.error("❌ Failed to load clubs:", err);
       setClubs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleJoin = async (clubId) => {
+  // ❤️ Handle Follow/Unfollow Toggle
+  const handleFollowToggle = async (club) => {
+    if (!token) {
+      alert("Please log in to follow clubs.");
+      return;
+    }
+
     try {
-      setJoiningClub(clubId);
-      await api.post(`/clubs/${clubId}/join`, { userId: user.id });
-      await loadAllData(); // ✅ Refresh joined state from backend
+      setFollowingClub(club.id);
+      const endpoint = club.isFollowing
+        ? `/clubs/${club.id}/unfollow`
+        : `/clubs/${club.id}/follow`;
+
+      await api.post(endpoint, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // ✅ Update state instantly for better UX
+      setClubs((prev) =>
+        prev.map((c) =>
+          c.id === club.id
+            ? {
+                ...c,
+                isFollowing: !c.isFollowing,
+                followerCount: c.isFollowing
+                  ? c.followerCount - 1
+                  : c.followerCount + 1,
+              }
+            : c
+        )
+      );
     } catch (err) {
-      console.error("❌ Join failed:", err);
+      console.error("❌ Follow/unfollow failed:", err);
     } finally {
-      setJoiningClub(null);
+      setFollowingClub(null);
     }
   };
 
@@ -106,25 +163,39 @@ export default function Clubs() {
                   />
                 </div>
                 <div className="club-info">
-                  <h3>{c.name}</h3>
-                  <p className="muted">
-                    {c.university?.name || "Unknown University"}
-                  </p>
+                  
+                 
                   <div className="club-meta">
-                    <span>{c.memberCount || 0} Members</span>
-                    <span>{c.eventCount || 0} Events</span>
+                    <span>{c.memberCount} Members</span>
+                   
                   </div>
+                   
+                  <div className="club-meta">
+                    <span>{c.followerCount} Followers</span>
+                  </div>
+
+                  <span>{c.eventCount} Events</span>
+
+
                   <button
-                    className={`btn-join ${c.joined ? "joined" : ""}`}
-                    onClick={() => handleJoin(c.id)}
-                    disabled={joiningClub === c.id}
+                    className={`btn-join ${c.isFollowing ? "joined" : ""}`}
+                    onClick={() => handleFollowToggle(c)}
+                    disabled={followingClub === c.id}
                   >
-                    {joiningClub === c.id
+                    {followingClub === c.id
                       ? "Processing..."
-                      : c.joined
-                      ? "Joined"
-                      : "Join"}
+                      : c.isFollowing
+                      ? "Following"
+                      : "Follow"}
                   </button>
+
+                  <div className="university-info">
+                    <h3>{c.name}</h3>
+                    <p className="muted">
+                      {c.university?.name || "Unknown University"}
+                    </p>
+                  </div>
+
                 </div>
               </div>
             ))
