@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 
 @Service
@@ -33,15 +35,26 @@ public class ClubService {
     private UniversityService universityService;
 
 
+    
     public List<Club> getAllClubs() {
-        return clubRepository.findAll();
+        List<Club> clubs = clubRepository.findAll();
+
+        // ✅ Force-load followers for serialization
+        clubs.forEach(club -> club.getFollowers().size());
+
+        return clubs;
     }
+
     
     @Cacheable("clubs")
     public Page<Club> getAllClubs(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         return clubRepository.findAll(pageable);
     }
+    
+    
+
+    
     
 
     public Club getClubById(Long id) {

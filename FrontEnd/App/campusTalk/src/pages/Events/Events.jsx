@@ -11,56 +11,105 @@ export default function Events() {
 
   useEffect(() => {
     loadEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Load events and (optionally) user's RSVPs; robustly handle both RSVP response shapes
   const loadEvents = async () => {
-  try {
-    // 🟩 Always load events
-    const res = await api.get("/events", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const eventsData = res.data;
-
-    // 🟨 Try to load RSVP info, but if it fails, continue normally
-    let rsvpMap = {};
     try {
-      const rsvpRes = await api.get("/rsvp/my", {
-        headers: { Authorization: `Bearer ${token}` },
+      const eventsRes = await api.get("/events", {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      rsvpRes.data.forEach((r) => (rsvpMap[r.event.id] = r.status));
-    } catch (innerErr) {
-      console.warn("⚠️ RSVP info not found (maybe /rsvp/my missing)");
+      const eventsData = eventsRes.data || [];
+
+      // Build rsvpMap from /rsvps/my if possible
+      const rsvpMap = {};
+      if (token) {
+        try {
+          const rsvpRes = await api.get("/rsvps/my", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const rsvps = rsvpRes.data || [];
+
+          // Accept both shapes:
+          // { event: { id: 5 }, status: "INTERESTED" }
+          // OR { eventId: 5, status: "INTERESTED" }
+          rsvps.forEach((r) => {
+            if (!r) return;
+            // prefer nested event.id
+            const nestedId = r.event?.id;
+            const altId = r.eventId ?? r.event_id ?? r.event?.id;
+            const eventId = nestedId ?? altId;
+            const status = r.status ?? r.Status;
+            if (eventId) {
+              rsvpMap[eventId] = status ?? null;
+            }
+          });
+        } catch (rErr) {
+          const status = rErr?.response?.status;
+          // treat auth/not-found as expected; log unexpected errors
+          if (![401, 403, 404].includes(status)) {
+            console.warn("Failed to fetch RSVPs (unexpected):", rErr);
+          }
+        }
+      }
+
+      const merged = eventsData.map((e) => ({
+        ...e,
+        rsvpStatus: rsvpMap[e.id] ?? null,
+      }));
+
+      setEvents(merged);
+    } catch (err) {
+      console.error("❌ Failed to load events:", err);
+      setEvents([]);
     }
+  };
 
-    const merged = eventsData.map((e) => ({
-      ...e,
-      rsvpStatus: rsvpMap[e.id] || null,
-    }));
-
-    setEvents(merged);
-  } catch (err) {
-    console.error("❌ Failed to load events:", err);
-    setEvents([]);
-  }
-};
-
-
-  const handleRSVP = async (eventId, status) => {
+  // Toggle RSVP (supports optimistic UI and toggling off)
+  const handleRSVP = async (eventId, newStatus) => {
     try {
       setUpdating(eventId);
-      await api.post(
-        `/rsvp/${eventId}/respond`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
+
+      // read current from state snapshot
+      const current = events.find((ev) => ev.id === eventId);
+      const currentStatus = current?.rsvpStatus;
+      const isCancelling = currentStatus === newStatus;
+
+      // optimistic update
+      setEvents((prev) =>
+        prev.map((e) => {
+          if (e.id !== eventId) return e;
+          return { ...e, rsvpStatus: isCancelling ? null : newStatus };
+        })
       );
 
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === eventId ? { ...e, rsvpStatus: status } : e
-        )
-      );
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      if (isCancelling) {
+        // delete RSVP — backend should support DELETE /api/rsvps/{eventId} or you can find id first.
+        // Here we call the delete-by-event route you added: DELETE /api/rsvps/{eventId}
+        // If your backend deletes by ID only, adjust accordingly (find RSVP id first)
+        await api.delete(`/rsvps/${eventId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await api.post(
+          `/rsvps/${eventId}/respond`,
+          { status: newStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
     } catch (err) {
       console.error("❌ RSVP failed:", err);
+      // revert by reloading fresh state from server
+      try {
+        await loadEvents();
+      } catch (reloadErr) {
+        console.error("❌ Reload after RSVP failure also failed:", reloadErr);
+      }
     } finally {
       setUpdating(null);
     }
@@ -130,7 +179,7 @@ export default function Events() {
                     onClick={() => handleRSVP(e.id, "INTERESTED")}
                     disabled={updating === e.id}
                   >
-                    ⭐ Interested
+                    {e.rsvpStatus === "INTERESTED" ? "⭐ Interested" : "☆ Interest"}
                   </button>
 
                   <button
@@ -140,7 +189,7 @@ export default function Events() {
                     onClick={() => handleRSVP(e.id, "GOING")}
                     disabled={updating === e.id}
                   >
-                    ✅ Going
+                    {e.rsvpStatus === "GOING" ? "✅ Going" : "☑️ Going"}
                   </button>
                 </div>
               </div>

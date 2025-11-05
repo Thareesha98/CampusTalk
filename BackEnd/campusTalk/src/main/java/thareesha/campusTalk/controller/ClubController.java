@@ -47,94 +47,10 @@ public class ClubController {
         }
     }
 
-    // ────────────────────────────────────────────────
-    // 🏗 Create a Club
-    // ────────────────────────────────────────────────
+   
     
     
     
-    
-//    
-//    @PostMapping
-//    public ResponseEntity<?> createClub(@RequestBody ClubCreateDTO dto, @RequestHeader("Authorization") String tokenHeader) {
-//        String token = tokenHeader.substring(7);
-//        String email = jwtService.extractEmail(token);
-//        User creator = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        Club club = new Club();
-//        club.setName(dto.getName());
-//        club.setDescription(dto.getDescription());
-//        club.setChairman(creator);
-//
-//        // ✅ Find university from ID
-//        University uni = clubService.findUniversityById(dto.getUniversityId());
-//        club.setUniversity(uni);
-//
-//        Club saved = clubService.createClub(club);
-//        return ResponseEntity.ok(saved);
-//    }
-
-    
-    /*
-    @PreAuthorize("hasAnyRole('ADMIN', 'CHAIRMAN')")
-    @PostMapping
-    public ResponseEntity<?> createClub(
-            @RequestBody ClubCreateDTO dto,
-            @RequestHeader("Authorization") String tokenHeader) {
-
-        String token = tokenHeader.substring(7);
-        String email = jwtService.extractEmail(token);
-        User creator = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // 🧩 Build new Club entity safely
-        Club club = new Club();
-        club.setName(dto.getName());
-        club.setDescription(dto.getDescription());
-        club.setProfilePicUrl(dto.getProfilePicUrl());
-
-        // 🧠 Handle University assignment
-        if (creator.getRole().equals("CHAIRMAN")) {
-            // chairman’s own university
-            if (creator.getUniversity() == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Chairman must belong to a university"));
-            }
-            club.setUniversity(creator.getUniversity());
-            club.setChairman(creator);
-
-        } else if (creator.getRole().equals("ADMIN")) {
-            // admin may specify target university manually
-            if (dto.getUniversityId() != null) {
-                University uni = clubService.findUniversityById(dto.getUniversityId());
-                club.setUniversity(uni);
-            } else {
-                return ResponseEntity.badRequest().body(Map.of("error", "University ID required for admin"));
-            }
-            club.setChairman(creator); // optional: may later assign real chairman
-        }
-
-        // 🧹 Ensure no transient child collections cause null-ID issues
-        club.setEvents(new ArrayList<>());
-        club.setMembers(new ArrayList<>());
-        club.setFollowers(new HashSet<>());
-
-        Club saved = clubService.createClub(club);
-        return ResponseEntity.ok(saved);
-    }
-*/
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     
     
     
@@ -225,11 +141,26 @@ public class ClubController {
         User follower = userService.findByEmail(email).orElseThrow();
 
         Club club = clubService.getClubById(clubId);
-        club.getFollowers().add(follower);
-        clubRepository.save(club);
+        ensureFollowersLoaded(club); // ✅ force collection initialization
 
-        return ResponseEntity.ok(Map.of("message", "You are now following " + club.getName()));
+        // prevent duplicate follows
+        if (!club.getFollowers().contains(follower)) {
+            club.getFollowers().add(follower);
+            clubRepository.save(club);
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "message", "You are now following " + club.getName(),
+                "followersCount", club.getFollowers().size()
+        ));
     }
+    
+    private void ensureFollowersLoaded(Club club) {
+        // Force initialization of lazy collection before modifying
+        club.getFollowers().size();
+    }
+
+    
 
     @PreAuthorize("hasAnyRole('STUDENT', 'CHAIRMAN')")
     @PostMapping("/{clubId}/unfollow")

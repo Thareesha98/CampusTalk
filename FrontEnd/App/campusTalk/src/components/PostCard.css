@@ -1,148 +1,307 @@
-/* PostCard — CampusTalk Rich Post Display */
+/* src/components/PostCard.css
+   Restored "before" dark card style and robust alignment.
+   Overwrites competing global rules by using specific selectors and safe fallbacks.
+*/
 
-.post-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+/* Container centering */
+.home-layout .postcard-container,
+.postcard-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+/* --- Card wrapper: deep navy, glass-like but dark --- */
+.home-layout .postcard-container .post-card,
+.postcard-container .post-card {
+  width: 100%;
+  max-width: 660px;
+  background: linear-gradient(180deg, #081026 0%, #0b1220 100%) !important; /* deep navy */
+  color: #e6f0ff;
   border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 8px 26px rgba(3, 7, 18, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  box-shadow: 0 10px 30px rgba(3,8,18,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  backdrop-filter: blur(6px);
 }
 
-.post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 36px rgba(3, 7, 18, 0.55);
+/* hover lift */
+.home-layout .postcard-container .post-card:hover,
+.postcard-container .post-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 46px rgba(3,10,20,0.7);
 }
 
+/* --- Header alignment (final fix) --- */
+
+
+
+/* --- FINAL, pixel-correct header alignment --- */
+
+
+/* --- FINAL FIX: avatar + name/date on same line, perfectly centered --- */
+
+/* --- Final fixed header alignment (avatar left, text stacked) --- */
+
+/* --- FINAL TRUE ALIGNMENT FIX --- */
 .post-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 14px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+/* Avatar */
+.post-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(6,182,212,0.35);
+  box-shadow: 0 0 6px rgba(6,182,212,0.2);
+  flex-shrink: 0;
+}
+
+/* Text block next to avatar */
+.post-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;     /* ✅ center text vertically to avatar */
+  align-items: flex-start;
+  height: 46px;                /* ✅ same height as avatar */
+  line-height: 1.25;
+}
+
+.post-meta strong {
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.post-meta .muted {
+  color: #9fb0c9;
+  font-size: 0.82rem;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Body */
+.post-body {
+  margin-top: 6px;
+  text-align: left;
+}
+.post-content {
+  color: #dbeffd;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 12px;
+}
+
+/* Image */
+.post-image-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.post-image {
+  width: 100%;
+  max-height: 460px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 6px 18px rgba(1,6,12,0.6);
+}
+
+/* Footer (likes + inline comment) - ensures same alignment as before */
+.post-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.02);
+}
+
+/* Left actions (like) */
+.footer-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.post-header .avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.04);
-}
-
-.post-meta {
-  display: flex;
-  flex-direction: column;
-}
-.post-meta strong {
-  font-size: 15px;
-  color: #e6f0ff;
-}
-.post-meta .muted {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.post-body {
-  margin-top: 10px;
-}
-.post-content {
-  font-size: 15px;
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-.post-image-wrap {
-  display: flex;
-  justify-content: center;
-}
-.post-image {
-  border-radius: 12px;
-  max-height: 400px;
-  width: 100%;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-/* Footer */
-.post-footer {
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 10px;
-}
-.post-actions {
-  display: flex;
-  gap: 20px;
-}
+/* like button */
 .action-btn {
-  background: transparent;
-  border: none;
-  color: #9fb0c9;
-  display: flex;
+  background: transparent !important;
+  border: none !important;
+  color: #ffb3b3;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: color 0.2s ease;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.action-btn .heart {
+  font-size: 16px;
 }
 .action-btn:hover {
-  color: #7dd3fc;
-}
-.action-btn svg {
-  width: 18px;
-  height: 18px;
-}
-.action-btn.liked {
-  color: #ef4444;
+  transform: translateY(-1px);
+  color: #ff6b6b;
 }
 
-/* Comments */
+/* Inline comment form style — keeps same layout as before */
+.comment-form-inline {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+/* comment input (matches before look: darker field) */
+.comment-form-inline input {
+    flex: 1 1 auto;
+  width: auto !important;
+  min-width: 0;
+  height: 40px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  color: #cfe6ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  outline: none;
+  font-size: 0.95rem;
+}
+.comment-form-inline input::placeholder {
+  color: #92aac6;
+}
+.comment-form-inline input:focus {
+  box-shadow: 0 0 0 4px rgba(6,182,212,0.06);
+  border-color: rgba(6,182,212,0.28);
+}
+
+/* comment submit button (icon) */
+.comment-form-inline button {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, #0ea5a2, #06b6d4);
+  border: none;
+  border-radius: 10px;
+  color: #022626;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.comment-form-inline button:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+/* Comments block alignment and styling */
 .comment-section {
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 14px;
   padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.02);
 }
 .comment-item {
   display: flex;
   gap: 10px;
+  align-items: flex-start;
   margin-bottom: 10px;
 }
 .comment-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.03);
 }
 .comment-body {
-  background: rgba(255, 255, 255, 0.04);
-  padding: 8px 10px;
-  border-radius: 10px;
-  flex: 1;
-}
-.comment-body p {
-  margin: 2px 0;
-}
-.comment-form {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-.comment-form input {
-  flex: 1;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  color: #fff;
-  padding: 8px;
-  outline: none;
-}
-.comment-form button {
-  background: #0ea5a2;
-  border: none;
-  border-radius: 8px;
-  color: #022626;
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+  color: #d8f1ff;
   padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.94rem;
+  line-height: 1.3;
+}
+.comment-body strong {
+  color: #7dd3fc;
+  margin-right: 6px;
+}
+
+/* Load more button alignment like before */
+.load-more-btn {
+  margin-left: 46px;
+  background: transparent;
+  color: #9fb0c9;
+  border: 1px solid rgba(255,255,255,0.03);
+  padding: 6px 10px;
+  border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
 }
-.comment-form button:hover {
-  opacity: 0.85;
+.load-more-btn:hover {
+  background: rgba(6,182,212,0.12);
+  color: #dff9ff;
+  transform: translateY(-1px);
+}
+
+/* Accessibility focus */
+.post-card :focus {
+  outline: 3px solid rgba(6,182,212,0.12);
+  outline-offset: 3px;
+}
+
+/* High-specificity safety fallbacks to avoid being overridden */
+.postcard-container .post-card,
+.postcard-container .post-card * {
+  color: inherit !important;
+  box-sizing: border-box !important;
+}
+
+/* --- Responsive adjustments (keeps same layout as before) --- */
+@media (max-width: 900px) {
+  .postcard-container .post-card { max-width: 92%; padding: 16px; }
+  .comment-form-inline { max-width: 100%; }
+  .load-more-btn { margin-left: 40px; }
+}
+
+@media (max-width: 520px) {
+  .post-footer { flex-direction: column; align-items: stretch; gap: 8px; }
+  .comment-form-inline { flex-direction: row; width: 100%; }
+  .comment-form-inline input { height: 38px; }
+  .comment-form-inline button { width: 46px; }
 }
