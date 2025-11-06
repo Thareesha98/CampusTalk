@@ -17,7 +17,6 @@ export default function EventsSidebar() {
 
   const fetchUserEvents = async () => {
     try {
-      // First, get clubs the student joined
       const clubRes = await api.get("/clubs/joined", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -25,7 +24,6 @@ export default function EventsSidebar() {
       const joinedClubs = clubRes.data || [];
       const allEvents = [];
 
-      // Fetch events for each club sequentially
       for (const club of joinedClubs) {
         const eventRes = await api.get(`/events/club/${club.id}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -38,11 +36,9 @@ export default function EventsSidebar() {
         );
       }
 
-      // Sort by date
       const sorted = allEvents.sort(
         (a, b) => new Date(a.dateTime) - new Date(b.dateTime)
       );
-
       setEvents(sorted);
     } catch (err) {
       console.error("❌ Failed to load events:", err);
@@ -63,16 +59,23 @@ export default function EventsSidebar() {
         <ul className="events-list">
           {events.slice(0, 5).map((ev) => (
             <li key={ev.id} className="event-item">
-              <div className="event-info">
-                <strong>{ev.title}</strong>
+              {ev.imageUrl && (
+                <div className="event-thumb-large">
+                  <img src={ev.imageUrl} alt={ev.title} />
+                </div>
+              )}
+              <div className="event-info-vertical">
+                <strong className="event-title">{ev.title}</strong>
                 <span className="event-date">
                   {new Date(ev.dateTime).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
-                  })}
-                  {" • "}
-                  {ev.clubName}
+                  })}{" "}
+                  • {ev.clubName}
                 </span>
+                {ev.description && (
+                  <p className="event-description">{ev.description}</p>
+                )}
               </div>
             </li>
           ))}

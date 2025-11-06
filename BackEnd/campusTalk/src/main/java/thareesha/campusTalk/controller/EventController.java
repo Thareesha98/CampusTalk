@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -23,6 +24,9 @@ public class EventController {
     @Autowired private ClubService clubService;
     @Autowired private UserService userService;
     @Autowired private JwtService jwtService;
+    
+    @Autowired
+    private S3Service s3Service;
 
     @GetMapping
     public List<Event> getAllEvents() {
@@ -36,10 +40,11 @@ public class EventController {
 
     // 🆕 CREATE EVENT (CHAIRMAN or ADMIN)
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
-    @PostMapping("/club/{clubId}")
+    @PostMapping(value = "/club/{clubId}", consumes = {"multipart/form-data"})
     public ResponseEntity<?> createEvent(
             @PathVariable Long clubId,
-            @RequestBody EventRequestDTO dto,
+            @RequestPart("dto") EventRequestDTO dto,
+            @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader("Authorization") String tokenHeader) {
 
         try {
@@ -55,6 +60,15 @@ public class EventController {
                         .body(Map.of("error", "You can only create events for your own club"));
             }
 
+            // 🖼 Upload image if present
+            String imageUrl = null;
+            if (file != null && !file.isEmpty()) {
+                System.out.println("✅ Uploading file to S3: " + file.getOriginalFilename());
+                imageUrl = s3Service.uploadFile(file, "event-images/");
+            } else {
+                System.out.println("⚠️ No image file uploaded");
+            }
+
             // 🧩 Build Event from DTO
             Event event = new Event();
             event.setTitle(dto.getTitle());
@@ -62,6 +76,7 @@ public class EventController {
             event.setLocation(dto.getLocation());
             event.setCreatedBy(creator);
             event.setClub(club);
+            event.setImageUrl(imageUrl); // ✅ set uploaded image URL
 
             // Safely parse dateTime
             try {
@@ -84,20 +99,47 @@ public class EventController {
         }
     }
 
+    
+    
+    
+    
     // ✏️ UPDATE EVENT
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<?> updateEvent(
             @PathVariable Long id,
-            @RequestBody EventRequestDTO dto,
+            @RequestPart("dto") EventRequestDTO dto,
+            @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader("Authorization") String tokenHeader) {
+
         try {
+            // 🔑 Get user info (if you want to enforce chairman access check)
+            String token = tokenHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+            User updater = userService.findByEmail(email).orElseThrow();
+
             Event existing = eventService.getEventById(id);
             if (existing == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Event not found"));
             }
 
+            // 🧠 Optional: Verify only chairman of that club can edit
+            if (updater.getRole().equals("CHAIRMAN") &&
+                    (existing.getClub().getChairman() == null ||
+                            !existing.getClub().getChairman().getId().equals(updater.getId()))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "You can only edit events of your own club"));
+            }
+
+            // 🖼 Upload new image (if provided)
+            if (file != null && !file.isEmpty()) {
+                System.out.println("✅ Uploading new event image: " + file.getOriginalFilename());
+                String newImageUrl = s3Service.uploadFile(file, "event-images/");
+                existing.setImageUrl(newImageUrl);
+            }
+
+            // 🧩 Update details from DTO
             existing.setTitle(dto.getTitle());
             existing.setDescription(dto.getDescription());
             existing.setLocation(dto.getLocation());
@@ -117,6 +159,11 @@ public class EventController {
                     .body(Map.of("error", "Failed to update event: " + e.getMessage()));
         }
     }
+
+    
+    
+    
+    
 
     // 🗑 DELETE EVENT
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")

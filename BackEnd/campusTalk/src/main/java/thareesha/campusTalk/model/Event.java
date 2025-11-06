@@ -22,8 +22,17 @@ public class Event {
     private String description;
     private String location;
     private LocalDateTime dateTime;
+    private String imageUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     @JsonIgnoreProperties({"posts", "followedClubs", "university", "clubs", "events"})
     private User createdBy;
