@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import api from "../api";
 import { AuthContext } from "../context/AuthContext";
 import "./ManageEvents.css";
@@ -11,9 +11,10 @@ export default function ManageEvents() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [dateTime, setDateTime] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [editingEvent, setEditingEvent] = useState(null);
   const token = localStorage.getItem("token");
-
   const { user } = useContext(AuthContext);
 
   // 🔁 Load clubs on mount
@@ -23,11 +24,8 @@ export default function ManageEvents() {
 
   // 🔁 Load events when selected club changes
   useEffect(() => {
-    if (selectedClub) {
-      fetchEventsByClub(selectedClub);
-    } else {
-      setEvents([]);
-    }
+    if (selectedClub) fetchEventsByClub(selectedClub);
+    else setEvents([]);
   }, [selectedClub]);
 
   // 🏛 Fetch clubs
@@ -37,15 +35,10 @@ export default function ManageEvents() {
         headers: { Authorization: `Bearer ${token}` },
       });
       let clubList = res.data;
-
-      // Filter clubs for chairman
       if (user?.role === "CHAIRMAN") {
         clubList = clubList.filter((c) => c.chairman?.email === user.email);
       }
-
       setClubs(clubList);
-
-      // Auto-select if only one club
       if (clubList.length === 1) setSelectedClub(clubList[0].id);
     } catch (err) {
       console.error("❌ Failed to load clubs:", err);
@@ -64,36 +57,36 @@ export default function ManageEvents() {
     }
   };
 
-  // 🆕 Create or Update Event
+  // 🆕 Create or Update Event (supports image upload)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedClub) {
-      alert("Please select a club!");
-      return;
-    }
+    if (!selectedClub) return alert("Please select a club!");
+    if (!title.trim()) return alert("Please enter a title for the event.");
 
-    if (!title.trim()) {
-      alert("Please enter a title for the event.");
-      return;
-    }
+    const dto = { title, description, location, dateTime };
 
-    const data = { title, description, location, dateTime };
+    const formData = new FormData();
+    formData.append(
+      "dto",
+      new Blob([JSON.stringify(dto)], { type: "application/json" })
+    );
+    if (imageFile) formData.append("file", imageFile);
 
     try {
       let res;
-      const headers = { Authorization: `Bearer ${token}` };
-
       if (editingEvent) {
-        // Update existing event
-        res = await api.put(`/events/${editingEvent.id}`, data, { headers });
+        res = await api.put(`/events/${editingEvent.id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }, // ✅ let Axios set boundary
+        });
         setEvents((prev) =>
           prev.map((e) => (e.id === editingEvent.id ? res.data : e))
         );
         alert("✅ Event updated successfully!");
       } else {
-        // Create new event
-        res = await api.post(`/events/club/${selectedClub}`, data, { headers });
+        res = await api.post(`/events/club/${selectedClub}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }, // ✅ let Axios set boundary
+        });
         setEvents([res.data, ...events]);
         alert("✅ Event created successfully!");
       }
@@ -108,7 +101,6 @@ export default function ManageEvents() {
   // 🗑 Delete Event
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
-
     try {
       await api.delete(`/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -127,8 +119,9 @@ export default function ManageEvents() {
     setTitle(event.title);
     setDescription(event.description);
     setLocation(event.location);
-    setDateTime(event.dateTime ? event.dateTime.slice(0, 16) : ""); // format for datetime-local
+    setDateTime(event.dateTime ? event.dateTime.slice(0, 16) : "");
     setSelectedClub(event.club?.id || "");
+    setImagePreview(event.imageUrl || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -137,6 +130,8 @@ export default function ManageEvents() {
     setDescription("");
     setLocation("");
     setDateTime("");
+    setImageFile(null);
+    setImagePreview("");
     setEditingEvent(null);
   };
 
@@ -189,6 +184,25 @@ export default function ManageEvents() {
           required
         />
 
+        {/* 🖼 Image Upload */}
+        <div className="image-upload">
+          <label>Event Image:</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              setImageFile(file);
+              if (file) setImagePreview(URL.createObjectURL(file));
+            }}
+          />
+          {imagePreview && (
+            <div className="image-preview">
+              <img src={imagePreview} alt="Preview" />
+            </div>
+          )}
+        </div>
+
         <div className="form-actions">
           <button type="submit" className="btn-primary">
             {editingEvent ? "Update Event" : "Create Event"}
@@ -208,6 +222,9 @@ export default function ManageEvents() {
         ) : (
           events.map((event) => (
             <div key={event.id} className="event-card">
+              {event.imageUrl && (
+                <img src={event.imageUrl} alt="Event" className="event-image" />
+              )}
               <div className="event-header">
                 <strong>{event.title}</strong>
                 <span>
@@ -217,10 +234,8 @@ export default function ManageEvents() {
                   })}
                 </span>
               </div>
-
               <p className="event-description">{event.description}</p>
               <p className="event-location">📍 {event.location}</p>
-
               <div className="event-footer">
                 <span className="event-club">
                   🏛 {event.club?.name || "Unknown Club"}

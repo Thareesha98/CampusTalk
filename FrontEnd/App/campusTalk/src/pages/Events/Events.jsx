@@ -6,6 +6,7 @@ import "./Events.css";
 export default function Events() {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
+  const [clubsMap, setClubsMap] = useState({});
   const [updating, setUpdating] = useState(null);
   const token = localStorage.getItem("token");
 
@@ -14,84 +15,81 @@ export default function Events() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load events and (optionally) user's RSVPs; robustly handle both RSVP response shapes
+  // 📥 Load all events and merge RSVP + Club data
   const loadEvents = async () => {
     try {
+      // 🟢 1. Fetch all events
       const eventsRes = await api.get("/events", {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       const eventsData = eventsRes.data || [];
 
-      // Build rsvpMap from /rsvps/my if possible
-      const rsvpMap = {};
+      // 🟢 2. Fetch all clubs once
+      const clubsRes = await api.get("/clubs");
+      const clubData = clubsRes.data || [];
+      const clubMap = {};
+      clubData.forEach((c) => (clubMap[c.id] = c));
+      setClubsMap(clubMap);
+
+      // 🟢 3. Fetch RSVPs (for logged-in users)
+      let rsvpMap = {};
       if (token) {
         try {
           const rsvpRes = await api.get("/rsvps/my", {
             headers: { Authorization: `Bearer ${token}` },
           });
           const rsvps = rsvpRes.data || [];
-
-          // Accept both shapes:
-          // { event: { id: 5 }, status: "INTERESTED" }
-          // OR { eventId: 5, status: "INTERESTED" }
           rsvps.forEach((r) => {
-            if (!r) return;
-            // prefer nested event.id
-            const nestedId = r.event?.id;
-            const altId = r.eventId ?? r.event_id ?? r.event?.id;
-            const eventId = nestedId ?? altId;
-            const status = r.status ?? r.Status;
-            if (eventId) {
-              rsvpMap[eventId] = status ?? null;
-            }
+            const eventId = r.event?.id ?? r.eventId ?? r.event_id;
+            if (eventId) rsvpMap[eventId] = r.status ?? r.Status;
           });
-        } catch (rErr) {
-          const status = rErr?.response?.status;
-          // treat auth/not-found as expected; log unexpected errors
-          if (![401, 403, 404].includes(status)) {
-            console.warn("Failed to fetch RSVPs (unexpected):", rErr);
-          }
+        } catch (err) {
+          console.warn("⚠️ RSVP fetch failed:", err);
         }
       }
 
-      const merged = eventsData.map((e) => ({
-        ...e,
-        rsvpStatus: rsvpMap[e.id] ?? null,
-      }));
+      // 🟢 4. Merge: attach club + RSVP status
+      const enriched = eventsData.map((e) => {
+        const club = e.club?.id ? clubMap[e.club.id] : clubMap[e.clubId];
+        return {
+          ...e,
+          club: club
+            ? {
+                ...club,
+                university: club.university || { name: "Unknown University" },
+              }
+            : { name: "Unknown Club", university: { name: "Unknown University" } },
+          rsvpStatus: rsvpMap[e.id] ?? null,
+        };
+      });
 
-      setEvents(merged);
+      setEvents(enriched);
     } catch (err) {
       console.error("❌ Failed to load events:", err);
       setEvents([]);
     }
   };
 
-  // Toggle RSVP (supports optimistic UI and toggling off)
+  // ✅ RSVP toggle (Interest / Going)
   const handleRSVP = async (eventId, newStatus) => {
     try {
       setUpdating(eventId);
-
-      // read current from state snapshot
-      const current = events.find((ev) => ev.id === eventId);
+      const current = events.find((e) => e.id === eventId);
       const currentStatus = current?.rsvpStatus;
       const isCancelling = currentStatus === newStatus;
 
-      // optimistic update
+      // Optimistic UI update
       setEvents((prev) =>
-        prev.map((e) => {
-          if (e.id !== eventId) return e;
-          return { ...e, rsvpStatus: isCancelling ? null : newStatus };
-        })
+        prev.map((e) =>
+          e.id === eventId
+            ? { ...e, rsvpStatus: isCancelling ? null : newStatus }
+            : e
+        )
       );
 
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
+      if (!token) throw new Error("Not authenticated");
 
       if (isCancelling) {
-        // delete RSVP — backend should support DELETE /api/rsvps/{eventId} or you can find id first.
-        // Here we call the delete-by-event route you added: DELETE /api/rsvps/{eventId}
-        // If your backend deletes by ID only, adjust accordingly (find RSVP id first)
         await api.delete(`/rsvps/${eventId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -104,12 +102,7 @@ export default function Events() {
       }
     } catch (err) {
       console.error("❌ RSVP failed:", err);
-      // revert by reloading fresh state from server
-      try {
-        await loadEvents();
-      } catch (reloadErr) {
-        console.error("❌ Reload after RSVP failure also failed:", reloadErr);
-      }
+      await loadEvents(); // revert to actual server state
     } finally {
       setUpdating(null);
     }
@@ -136,11 +129,16 @@ export default function Events() {
         <div className="events-grid">
           {events.map((e) => (
             <div key={e.id} className="event-card">
+              {/* 🖼 Event Image */}
               <div className="event-banner">
-                <img src={e.imageUrl || "/event-placeholder.png"} alt={e.title} />
+                <img
+                  src={e.imageUrl || "/event-placeholder.png"}
+                  alt={e.title}
+                />
                 <div className="event-timeleft">{timeLeft(e.dateTime)}</div>
               </div>
 
+              {/* 📄 Event Info */}
               <div className="event-info">
                 <h3>{e.title}</h3>
                 <p className="muted">
@@ -157,20 +155,27 @@ export default function Events() {
                     : e.description || "No description."}
                 </p>
 
-                <div className="host-info">
-                  {e.club ? (
-                    <>
-                      <img
-                        src={e.club.profilePicUrl || "/club-placeholder.png"}
-                        alt={e.club.name}
-                      />
-                      <span>{e.club.name}</span>
-                    </>
-                  ) : (
-                    <span>{e.university?.name || "University Event"}</span>
-                  )}
-                </div>
+                {/* 🏛 Club + University Info */}
+                {e.club && (
+                  <div className="host-info">
+                    <img
+                      src={
+                        e.club.profilePicUrl
+                          ? e.club.profilePicUrl
+                          : "/club-placeholder.png"
+                      }
+                      alt={e.club.name}
+                    />
+                    <div className="host-text">
+                      <span className="host-club">{e.club.name}</span><br></br>
+                      <span className="host-uni">
+                        {e.club.university?.name || "Unknown University"}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
+                {/* 🎟 RSVP Buttons */}
                 <div className="rsvp-actions">
                   <button
                     className={`btn-rsvp ${
