@@ -31,6 +31,8 @@ public class Event {
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
+	
+	
 
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
