@@ -19,6 +19,7 @@ public class DataSeeder {
         if (universityRepository.count() == 0) {
             List<University> universities = List.of(
                     new University(null, "University of Colombo", "Colombo", "Leading university in Sri Lanka", "https://example.com/colombo.png", null, null),
+                    new University(null, "University of Ruhuna", "Matara", "Leading university in Sri Lanka", "https://example.com/colombo.png", null, null),
                     new University(null, "University of Moratuwa", "Moratuwa", "Top engineering university", "https://example.com/moratuwa.png", null, null),
                     new University(null, "University of Peradeniya", "Kandy", "Oldest and most scenic university", "https://example.com/peradeniya.png", null, null)
             );
