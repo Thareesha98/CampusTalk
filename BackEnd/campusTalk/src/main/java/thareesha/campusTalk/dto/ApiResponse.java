@@ -7,6 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
+//dome
 public class ApiResponse<T> {
     private String status;
     private String message;
