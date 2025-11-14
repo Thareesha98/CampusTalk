@@ -1,0 +1,56 @@
+.rsvp-manager {
+  padding: 20px;
+  background: #f9fafc;
+  border-radius: 12px;
+}
+
+.manager-title {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.selectors {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.selectors select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  flex: 1;
+}
+
+.rsvp-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.rsvp-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.rsvp-actions button:hover {
+  transform: scale(1.05);
+}
+
+.rsvp-list {
+  margin-top: 15px;
+}
+
+.rsvp-card {
+  background: white;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

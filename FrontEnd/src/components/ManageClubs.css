@@ -1,0 +1,119 @@
+.manage-clubs {
+  padding: 25px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.07);
+  max-width: 800px;
+  margin: auto;
+}
+
+.manager-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.club-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.club-form input,
+.club-form textarea {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  color: #443e3ec2;
+}
+
+.club-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-cancel {
+  background: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-cancel:hover {
+  background: #c62828;
+}
+
+.clubs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.club-card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.club-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.club-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+.club-actions button {
+  background: #eee;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-left: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.club-actions button:hover {
+  background: #ddd;
+}
+
+.no-clubs {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+}

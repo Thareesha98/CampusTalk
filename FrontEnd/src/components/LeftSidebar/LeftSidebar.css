@@ -1,0 +1,83 @@
+/* LeftSidebar — modern glassy card layout */
+
+.left-sidebar {
+  position: sticky;
+  top: 90px;
+  width: 260px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(3, 7, 18, 0.5);
+  padding-bottom: 20px;
+  color: #e6f0ff;
+  backdrop-filter: blur(6px);
+}
+
+.profile-summary {
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cover {
+  height: 70px;
+  background: linear-gradient(90deg, #0ea5a2, #06b6d4);
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+.avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  margin-top: -36px;
+  object-fit: cover;
+}
+
+.profile-summary h3 {
+  margin: 8px 0 4px;
+  font-size: 17px;
+}
+
+.muted {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* Stats section */
+.user-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-stats .label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.7;
+}
+.user-stats .value {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Quick navigation links */
+.quick-links {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+.quick-links a {
+  color: #cfe6ff;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+.quick-links a:hover {
+  background: rgba(255, 255, 255, 0.04);
+}

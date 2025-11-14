@@ -1,0 +1,71 @@
+/* src/App.css */
+
+/* Root layout wrapper */
+.app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+  color: #e6f0ff;
+}
+
+/* Main app area */
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Center loading screens or 404 pages */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+
+/* Auth loading spinner/text */
+.auth-loading {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Responsive paddings and layout */
+@media (max-width: 1024px) {
+  .app-main {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding: 0.8rem;
+  }
+}
+
+/* Optional fade-in animation for smoother route transitions */
+.app-main > * {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Remove old template stuff */
+.logo,
+.card,
+.read-the-docs {
+  display: none;
+}
