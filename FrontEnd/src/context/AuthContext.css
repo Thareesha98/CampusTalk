@@ -1,0 +1,10 @@
+/* src/context/AuthContext/AuthContext.css */
+/* small helpers for auth UI states used by components */
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #cfe6ff;
+  font-weight: 700;
+}

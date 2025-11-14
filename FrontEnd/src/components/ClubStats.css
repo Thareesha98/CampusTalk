@@ -1,0 +1,55 @@
+.club-stats {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.club-stats h3 {
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 12px;
+  text-align: center;
+  padding: 20px 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card h4 {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.stat-card p {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.charts {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}

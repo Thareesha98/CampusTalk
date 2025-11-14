@@ -1,0 +1,103 @@
+.club-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.club-banner {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.club-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.club-avatar-lg {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+}
+
+.club-info h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.club-info .bio {
+  font-size: 1rem;
+  margin: 8px 0;
+}
+
+.follow-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-follow {
+  padding: 6px 12px;
+  background: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn-follow.following {
+  background: #ef4444;
+  color: white;
+}
+
+.chairman-box {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin-top: 20px;
+}
+
+.club-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.posts-section,
+.events-section,
+.members-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.member-card {
+  text-align: center;
+}
+
+.member-card img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-bottom: 6px;
+  object-fit: cover;
+}
+
+.muted {
+  color: #6b7280;
+}

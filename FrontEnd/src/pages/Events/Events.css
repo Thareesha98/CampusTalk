@@ -1,0 +1,251 @@
+/* 🌌 CampusTalk Events Page — Dark-Glass Themed, Consistent with Clubs & Feed */
+
+.events-page {
+  color: #e6f0ff;
+  padding: 100px 40px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #071227 0%, #040b18 100%);
+  font-family: "Poppins", sans-serif;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.events-page h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #7dd3fc;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+}
+
+.muted {
+  font-size: 0.95rem;
+  color: #9ca6c9;
+  text-align: center;
+}
+
+/* === Grid layout === */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.8rem;
+  justify-items: center;
+}
+
+/* === Event Card === */
+.event-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgba(10, 15, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  transition: all 0.25s ease;
+  width: 100%;
+  max-width: 320px;
+  color: #e6f0ff;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(6, 182, 212, 0.25);
+}
+
+/* === Banner === */
+.event-banner {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.event-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: none;
+  border-radius: 0;
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.event-card:hover .event-banner img {
+  transform: scale(1.05);
+  filter: brightness(1.15);
+}
+
+/* Subtle overlay timer */
+.event-timeleft {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(4, 10, 24, 0.75);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: #7dd3fc;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+/* === Event Info === */
+.event-info {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.event-info h3 {
+  font-size: 1.1rem;
+  margin: 0 0 6px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.event-info .muted {
+  text-align: left;
+  font-size: 0.85rem;
+  color: #9fb0c9;
+  margin-bottom: 6px;
+}
+
+.event-info .desc {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #dbeffd;
+  margin: 6px 0 10px;
+  opacity: 0.95;
+}
+
+/* === Host Info === */
+.host-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  background: rgba(255, 9, 9, 0.03);
+  border-radius: 8px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.95rem;
+}
+
+.host-info img {
+  width: 38px;
+  height: 38px;
+  border-radius: 3rem;
+  object-fit: cover;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* === RSVP Buttons === */
+.rsvp-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-rsvp {
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e6f0ff;
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-rsvp:hover {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.3);
+  color: #7dd3fc;
+}
+
+/* Active states */
+.btn-rsvp.active {
+  background: linear-gradient(135deg, #0ea5a2, #06b6d4);
+  color: #022626;
+  border-color: transparent;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.btn-rsvp.interested.active {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+}
+
+.btn-rsvp.going.active {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .events-page {
+    padding: 80px 20px;
+  }
+
+  .event-banner {
+    height: 130px;
+  }
+
+  .event-card {
+    max-width: 100%;
+  }
+
+  .btn-rsvp {
+    font-size: 0.85rem;
+  }
+}
+
+
+
+/* ===== FINAL OVERRIDE: Force Dark Theme for Events ===== */
+.event-card,
+.event-card *,
+.event-card::before,
+.event-card::after {
+  background: rgba(10, 15, 28, 0.98) !important; /* deep dark blue-gray */
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: #e6f0ff !important;
+  box-shadow: none !important;
+}
+
+/* Keep inner content transparent but remove any white bleed */
+.event-info,
+.event-banner,
+.event-banner img {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Fix white backdrop inheritance */
+.events-grid,
+.events-page {
+  background: #041026 !important; /* matches global --bg variable */
+}
+
+/* Prevent pseudo-element gradients from appearing */
+.event-card::before,
+.event-card::after,
+.event-banner::before,
+.event-banner::after {
+  content: none !important;
+}
+
+/* Re-enable hover shadow safely */
+.event-card:hover {
+  background: rgba(10, 15, 28, 0.98) !important;
+  box-shadow: 0 12px 36px rgba(6, 182, 212, 0.25) !important;
+}
