@@ -14,15 +14,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # === 2️⃣ Build Vite Frontend ===
-      - name: Build Frontend (Vite)
+      # === 2️⃣ Build Frontend (Vite) ===
+      - name: Build Frontend
         working-directory: FrontEnd
         run: |
           npm ci
           npm run build
           echo "✅ Frontend build completed."
 
-      # === 3️⃣ Build Spring Boot Backend ===
+      # === 3️⃣ Build Backend (Spring Boot) ===
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -35,13 +35,14 @@ jobs:
           ./mvnw clean package -DskipTests
           echo "✅ Backend build completed."
 
-      # === 4️⃣ Copy JAR to root ===
-      - name: Prepare Backend JAR
+      # === 4️⃣ Copy Backend JAR to repo root ===
+      - name: Prepare Backend JAR for Upload
         run: |
           cp BackEnd/campusTalk/target/*.jar ./campustalk-backend.jar
-          ls -lh campustalk-backend.jar
+          ls -lah campustalk-backend.jar
+          echo "✅ Backend JAR is ready."
 
-      # === 5️⃣ Upload artifacts to EC2 ===
+      # === 5️⃣ Upload Artifacts (Backend + Frontend) to EC2 ===
       - name: Upload Files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -50,11 +51,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           source: "campustalk-backend.jar,FrontEnd/dist/**"
-          target: /home/ubuntu/campustalk-deploy-temp/
+          target: "/home/ubuntu/campustalk-deploy-temp/"
           strip_components: 2
 
-      # === 6️⃣ Deploy using SSH ===
-      - name: Restart Backend & Deploy Frontend
+      # === 6️⃣ Deploy on EC2 WITH FULL DEBUGGING ===
+      - name: Restart Backend & Deploy Frontend (DEBUG MODE)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -64,11 +65,41 @@ jobs:
           script: |
             set -e
 
+            echo "================ DEBUG START ================"
+
+            echo "🔍 Who am I?"
+            whoami || true
+
+            echo "🔍 Current working directory:"
+            pwd || true
+
+            echo "🔍 Listing /home:"
+            ls -lah /home || true
+
+            echo "🔍 Listing /home/ubuntu:"
+            ls -lah /home/ubuntu || true
+
+            echo "🔍 Listing TEMP DEPLOY FOLDER:"
+            ls -lah /home/ubuntu/campustalk-deploy-temp || true
+
+            echo "🔍 Searching for JAR in temp folder:"
+            ls -lah /home/ubuntu/campustalk-deploy-temp/*.jar || echo "❌ No JAR found"
+
+            echo "🔍 Checking backend directory (/opt/campustalk/backend):"
+            ls -lah /opt/campustalk/backend || true
+
+            echo "🔍 Checking frontend directory (/var/www/campustalk):"
+            ls -lah /var/www/campustalk || true
+
+            echo "================ DEBUG END =================="
+
             echo "🔹 Moving backend JAR..."
             sudo mv /home/ubuntu/campustalk-deploy-temp/campustalk-backend.jar /opt/campustalk/backend/campustalk-backend.jar
+
+            echo "🔹 Setting correct permissions..."
             sudo chown ubuntu:ubuntu /opt/campustalk/backend/campustalk-backend.jar
 
-            echo "🔹 Restarting Backend (systemd)..."
+            echo "🔹 Restarting Backend Service..."
             sudo systemctl daemon-reload
             sudo systemctl restart campustalk-backend.service
             sudo systemctl status campustalk-backend.service --no-pager -l
