@@ -23,9 +23,12 @@ public class Notification {
 
     private String type; // POST, EVENT, LIKE, COMMENT
 
+    // FIXED: MySQL keyword "read" -> safe column name
+    @Column(name = "is_read")
     private boolean read = false;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+
 
     // 🔗 Receiver
     @ManyToOne(fetch = FetchType.LAZY)
