@@ -50,9 +50,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
-          source: |
-            campustalk-backend.jar
-            FrontEnd/dist/**
+          source: "campustalk-backend.jar,FrontEnd/dist/**"
           target: /home/ubuntu/campustalk-deploy-temp/
 
       # === 6️⃣ Run deployment commands (systemd + nginx) ===
