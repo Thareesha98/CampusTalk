@@ -35,12 +35,11 @@ jobs:
           ./mvnw clean package -DskipTests
           echo "✅ Backend build completed."
 
-      # === 4️⃣ Rename built JAR (for uploading) ===
+      # === 4️⃣ Copy JAR for upload ===
       - name: Copy JAR to root for deploy
         run: |
           cp BackEnd/campusTalk/target/*.jar ./campustalk-backend.jar
           ls -lh campustalk-backend.jar
-          echo "✅ Backend JAR ready."
 
       # === 5️⃣ Upload Frontend + Backend to EC2 ===
       - name: Upload files to EC2
