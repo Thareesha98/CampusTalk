@@ -35,48 +35,48 @@ jobs:
           ./mvnw clean package -DskipTests
           echo "✅ Backend build completed."
 
-      # === 4️⃣ Copy JAR for upload ===
-      - name: Copy JAR to root for deploy
+      # === 4️⃣ Copy JAR to root ===
+      - name: Prepare Backend JAR
         run: |
           cp BackEnd/campusTalk/target/*.jar ./campustalk-backend.jar
           ls -lh campustalk-backend.jar
 
-      # === 5️⃣ Upload Frontend + Backend to EC2 ===
-      - name: Upload files to EC2
+      # === 5️⃣ Upload artifacts to EC2 ===
+      - name: Upload Files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           source: "campustalk-backend.jar,FrontEnd/dist/**"
           target: /home/ubuntu/campustalk-deploy-temp/
           strip_components: 2
 
-      # === 6️⃣ Run deployment commands (systemd + nginx) ===
+      # === 6️⃣ Deploy using SSH ===
       - name: Restart Backend & Deploy Frontend
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
             set -e
 
-            echo "🔹 Moving backend JAR to deployment directory..."
-            sudo mv /home/ubuntu/campustalk-deploy-temp/campustalk-backend.jar ${{ secrets.EC2_BACKEND_DIR }}/campustalk-backend.jar
-            sudo chown ubuntu:ubuntu ${{ secrets.EC2_BACKEND_DIR }}/campustalk-backend.jar
+            echo "🔹 Moving backend JAR..."
+            sudo mv /home/ubuntu/campustalk-deploy-temp/campustalk-backend.jar /opt/campustalk/backend/campustalk-backend.jar
+            sudo chown ubuntu:ubuntu /opt/campustalk/backend/campustalk-backend.jar
 
-            echo "🔹 Restarting CampusTalk backend..."
+            echo "🔹 Restarting Backend (systemd)..."
             sudo systemctl daemon-reload
             sudo systemctl restart campustalk-backend.service
             sudo systemctl status campustalk-backend.service --no-pager -l
 
-            echo "🔹 Deploying frontend to Nginx directory..."
-            sudo rm -rf ${{ secrets.EC2_FRONTEND_DIR }}/*
-            sudo cp -r /home/ubuntu/campustalk-deploy-temp/* ${{ secrets.EC2_FRONTEND_DIR }}/
-            sudo chown -R www-data:www-data ${{ secrets.EC2_FRONTEND_DIR }}
+            echo "🔹 Deploying Frontend..."
+            sudo rm -rf /var/www/campustalk/*
+            sudo cp -r /home/ubuntu/campustalk-deploy-temp/* /var/www/campustalk/
+            sudo chown -R www-data:www-data /var/www/campustalk
 
             echo "🔹 Reloading Nginx..."
             sudo systemctl reload nginx
