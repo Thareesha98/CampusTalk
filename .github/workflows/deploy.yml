@@ -75,10 +75,11 @@ jobs:
 
             echo "🔹 Deploying frontend to Nginx directory..."
             sudo rm -rf ${{ secrets.EC2_FRONTEND_DIR }}/*
-            sudo cp -r /home/ubuntu/campustalk-deploy-temp/FrontEnd/dist/* ${{ secrets.EC2_FRONTEND_DIR }}/
+            sudo cp -r /home/ubuntu/campustalk-deploy-temp/* ${{ secrets.EC2_FRONTEND_DIR }}/
             sudo chown -R www-data:www-data ${{ secrets.EC2_FRONTEND_DIR }}
 
             echo "🔹 Reloading Nginx..."
             sudo systemctl reload nginx
 
             echo "🎉 Deployment completed successfully!"
+
