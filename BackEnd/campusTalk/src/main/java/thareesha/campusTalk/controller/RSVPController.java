@@ -14,7 +14,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/rsvps")
-@CrossOrigin
 public class RSVPController {
 
     @Autowired private RSVPService rsvpService;

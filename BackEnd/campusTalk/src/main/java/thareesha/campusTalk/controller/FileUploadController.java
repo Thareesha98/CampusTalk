@@ -10,7 +10,6 @@ import thareesha.campusTalk.service.S3Service;
 
 @RestController
 @RequestMapping("/api/upload")
-@CrossOrigin("*")
 public class FileUploadController {
 
     private final S3Service s3Service;

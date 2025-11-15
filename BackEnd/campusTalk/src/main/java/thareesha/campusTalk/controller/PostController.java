@@ -19,7 +19,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/posts")
-@CrossOrigin("*")
 public class PostController {
 
     @Autowired private PostRepository postRepository;

@@ -40,8 +40,10 @@ public class SecurityConfig {
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(List.of(
                     "http://localhost:5173",   // ✅ React (Vite)
+                    "http://13.233.34.226",           // YOUR DEPLOYED FRONTEND
+                    "http://13.233.34.226:80",
                     "http://localhost:3000",   // Optional (CRA)
-                    "https://your-frontend-domain.com"
+                    "http://campustalk.thareesha.software"
                 ));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
