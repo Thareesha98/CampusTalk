@@ -18,6 +18,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 📅 Find all posts by a specific user (profile page)
     List<Post> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Post> findByClubIdInOrderByCreatedAtDesc(Set<Long> clubIds);
+
     
     
 }

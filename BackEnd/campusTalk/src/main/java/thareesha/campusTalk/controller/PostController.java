@@ -34,23 +34,45 @@ public class PostController {
  // ────────────────────────────────────────────────
  // 📰 Get All Posts (For Home Feed)
  // ────────────────────────────────────────────────
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity<List<PostResponseDTO>> getAllPosts() {
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts(
+            @RequestHeader("Authorization") String tokenHeader) {
         try {
-            List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+            String token = tokenHeader.substring(7);
+            String email = jwtService.extractEmail(token);
 
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 🔥 1️⃣ Get IDs of clubs the user follows
+            Set<Club> followedClubs = user.getFollowedClubs();
+            Set<Long> clubIds = new HashSet<>();
+
+            for (Club c : followedClubs) {
+                clubIds.add(c.getId());
+            }
+
+            // 🔥 2️⃣ Fetch posts only from user-followed clubs
+            List<Post> posts;
+            if (clubIds.isEmpty()) {
+                posts = Collections.emptyList();
+            } else {
+                posts = postRepository.findByClubIdInOrderByCreatedAtDesc(clubIds);
+            }
+
+            // 🔥 3️⃣ Convert Post → PostResponseDTO
             List<PostResponseDTO> postDTOs = posts.stream().map(post -> {
-                // Map comments → CommentDTO list
-                List<CommentDTO> commentDTOs = post.getComments() == null ? List.of() :
-                        post.getComments().stream()
-                                .map(c -> new CommentDTO(
-                                        c.getId(),
-                                        c.getText(),
-                                        c.getCreatedAt(),
-                                        c.getUser() != null ? c.getUser().getName() : "Anonymous",
-                                        c.getUser() != null ? c.getUser().getProfilePicUrl() : null
-                                ))
-                                .toList();
+                List<CommentDTO> commentDTOs =
+                        post.getComments() == null ? List.of() :
+                                post.getComments().stream()
+                                        .map(c -> new CommentDTO(
+                                                c.getId(),
+                                                c.getText(),
+                                                c.getCreatedAt(),
+                                                c.getUser() != null ? c.getUser().getName() : "Anonymous",
+                                                c.getUser() != null ? c.getUser().getProfilePicUrl() : null
+                                        )).toList();
 
                 return new PostResponseDTO(
                         post.getId(),
@@ -71,6 +93,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
 
     
