@@ -60,12 +60,25 @@ public class SecurityConfig {
 
             // 4️⃣ Authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/upload/image/**", "/api/universities/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
+
+            	    .requestMatchers("/api/auth/**").permitAll()
+
+            	    // UNIVERSITY PUBLIC ENDPOINTS
+            	    .requestMatchers(HttpMethod.GET, "/api/universities/**").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/universities/*/details").permitAll()
+
+            	    .requestMatchers("/api/upload/image/**").permitAll()
+
+            	    // PUBLIC CLUB + EVENT FETCHING
+            	    .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
+
+            	    // ADMIN ONLY
+            	    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+            	    // EVERYTHING ELSE NEEDS JWT
+            	    .anyRequest().authenticated()
+            	)
+
 
             // 5️⃣ Stateless session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import thareesha.campusTalk.model.University;
 import thareesha.campusTalk.repository.UniversityRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -25,22 +27,39 @@ public class UniversityController {
     public ResponseEntity<List<University>> getAllUniversities() {
         return ResponseEntity.ok(universityRepository.findAll());
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getUniversity(@PathVariable Long id){
-    	return ResponseEntity.of(universityRepository.findById(id));
+        return ResponseEntity.of(universityRepository.findById(id));
     }
-    
+
     @GetMapping("/{id}/details")
     public ResponseEntity<?> getUniversityDetails(@PathVariable Long id) {
 
-        Optional<University> uni = universityRepository.fetchFullById(id);
+        Optional<University> uniOpt = universityRepository.fetchWithClubs(id);
 
-        if (uni.isEmpty()) {
+        if (uniOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(uni.get());
+        University uni = uniOpt.get();
+
+        int studentCount = (uni.getStudents() == null)
+                ? 0
+                : uni.getStudents().size();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", uni.getId());
+        response.put("name", uni.getName());
+        response.put("location", uni.getLocation());
+        response.put("description", uni.getDescription());  // CAN BE NULL
+        response.put("logoUrl", uni.getLogoUrl());          // CAN BE NULL
+        response.put("imageUrl", uni.getImageUrl());        // CAN BE NULL
+        response.put("studentCount", studentCount);
+        response.put("clubs", uni.getClubs());               // SAFE
+
+        return ResponseEntity.ok(response);
     }
 
 }
+
