@@ -21,8 +21,8 @@
 .uni-hero img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  filter: brightness(0.92);
+  object-fit: fill;
+  filter: brightness(0.82);
   transition: transform 0.4s ease;
 }
 
@@ -100,7 +100,7 @@
 .club-card img {
   width: 80px;
   height: 80px;
-  object-fit: cover;
+  object-fit: fill;
   border-radius: 50%;
   border: 2px solid rgba(6, 182, 212, 0.4);
   margin-bottom: 8px;
@@ -132,6 +132,21 @@
   .clubs-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
+
+  .clubs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .club-card {
+    min-height: 220px;
+    padding: 15px 10px;
+  }
+
+  .club-card img {
+    width: 75px;
+    height: 75px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -143,4 +158,31 @@
     width: 65px;
     height: 65px;
   }
+}
+
+
+/* ===== UNIVERSITY LOGO + NAME ROW ===== */
+.uni-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+/* CIRCULAR LOGO STYLE */
+.uni-logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(6, 182, 212, 0.45);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.uni-logo:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.55);
 }

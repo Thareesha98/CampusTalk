@@ -119,5 +119,29 @@ public class JwtService {
             return false;
         }
     }
+    
+    public Long extractUserId(String token) {
+        if (token == null || token.isBlank()) {
+            return null;
+        }
+
+        try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+
+            String email = extractEmail(token);
+
+            return userRepository.findByEmail(email)
+                    .map(User::getId)
+                    .orElse(null);
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    
+    
 }
 

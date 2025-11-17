@@ -38,7 +38,8 @@ public class University {
     private List<User> students;
 
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"university", "events", "followers", "members", "chairman"})
+    @JsonIgnoreProperties({"university", "events", "members", "chairman"})
     private List<Club> clubs;
+
 }
 
