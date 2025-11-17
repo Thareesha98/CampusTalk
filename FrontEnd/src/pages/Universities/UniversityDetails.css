@@ -1,0 +1,146 @@
+/* 🌌 CampusTalk — University Details Page
+   -------------------------------------------------- */
+
+.uni-detail-page {
+  color: #e6f0ff;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #071227 0%, #040b18 100%);
+  padding-bottom: 60px;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ===== HERO BANNER ===== */
+.uni-hero {
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px);
+}
+
+.uni-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.92);
+  transition: transform 0.4s ease;
+}
+
+.uni-hero:hover img {
+  transform: scale(1.05);
+}
+
+/* ===== DETAIL CONTENT ===== */
+.uni-detail-content {
+  max-width: 900px;
+  margin: 0 auto;
+  margin-top: -40px;
+  background: rgba(10, 15, 28, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  padding: 40px 35px;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(6, 182, 212, 0.08);
+}
+
+.uni-detail-content h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #7dd3fc;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+  margin-bottom: 8px;
+}
+
+.uni-detail-content .muted {
+  color: #9fb0c9;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.uni-description {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #dbeffd;
+  margin-bottom: 20px;
+  opacity: 0.95;
+  white-space: pre-line;
+}
+
+.uni-detail-content hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 25px 0;
+}
+
+/* ===== CLUBS GRID ===== */
+.clubs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.4rem;
+  margin-top: 15px;
+}
+
+.club-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 15px 10px;
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+  text-align: center;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.club-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(6, 182, 212, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.club-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(6, 182, 212, 0.4);
+  margin-bottom: 8px;
+}
+
+.club-card p {
+  margin: 0;
+  color: #e6f0ff;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .uni-hero {
+    height: 200px;
+  }
+
+  .uni-detail-content {
+    margin-top: -20px;
+    padding: 25px 20px;
+  }
+
+  .uni-detail-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .clubs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .uni-hero {
+    height: 170px;
+  }
+
+  .club-card img {
+    width: 65px;
+    height: 65px;
+  }
+}

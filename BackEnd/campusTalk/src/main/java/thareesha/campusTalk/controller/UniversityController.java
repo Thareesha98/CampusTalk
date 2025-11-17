@@ -7,6 +7,7 @@ import thareesha.campusTalk.model.University;
 import thareesha.campusTalk.repository.UniversityRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/universities")
@@ -24,4 +25,22 @@ public class UniversityController {
     public ResponseEntity<List<University>> getAllUniversities() {
         return ResponseEntity.ok(universityRepository.findAll());
     }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUniversity(@PathVariable Long id){
+    	return ResponseEntity.of(universityRepository.findById(id));
+    }
+    
+    @GetMapping("/{id}/details")
+    public ResponseEntity<?> getUniversityDetails(@PathVariable Long id) {
+
+        Optional<University> uni = universityRepository.fetchFullById(id);
+
+        if (uni.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(uni.get());
+    }
+
 }

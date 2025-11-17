@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
+import { useNavigate } from "react-router-dom";
 import "./Universities.css";
 
 /*
@@ -13,6 +14,8 @@ import "./Universities.css";
 export default function Universities() {
   const [universities, setUniversities] = useState([]);
   const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     api
@@ -36,9 +39,13 @@ export default function Universities() {
             <div
               key={u.id}
               className="university-card"
-              onClick={() => openModal(u)}
+              onClick={() => navigate(`/universities/${u.id}`)}
             >
-              <div className="uni-banner"></div>
+              <div className="uni-banner">
+
+                   <img src={u.imageUrl || "/default-uni.jpg"} alt={u.name} />
+
+              </div>
               <div className="uni-body">
                 <h3>{u.name}</h3>
                 <p className="muted">{u.city}</p>
