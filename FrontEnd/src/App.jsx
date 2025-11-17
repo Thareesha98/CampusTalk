@@ -11,6 +11,7 @@ import Clubs from "./pages/Clubs/Clubs";
 import Events from "./pages/Events/Events";
 import Notifications from "./pages/Notifications";
 import Search from "./pages/Search";
+import UniversityDetails from "./pages/Universities/UniversityDetails";
 import { AuthContext } from "./context/AuthContext";
 import "./App.css";
 
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/universities" element={<PrivateRoute><Universities /></PrivateRoute>} />
+          <Route path="/universities/:id" element={<PrivateRoute><UniversityDetails /></PrivateRoute>} />
           <Route path="/clubs" element={<PrivateRoute><Clubs /></PrivateRoute>} />
           <Route path="/events" element={<PrivateRoute><Events /></PrivateRoute>} />
           <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />

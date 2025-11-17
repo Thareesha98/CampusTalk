@@ -1,5 +1,6 @@
 package thareesha.campusTalk.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
@@ -30,12 +31,14 @@ public class University {
     private String description;
 
     private String logoUrl;
+    private String imageUrl;
 
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<User> students;
 
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"university", "events", "followers", "members", "chairman"})
     private List<Club> clubs;
 }
 
