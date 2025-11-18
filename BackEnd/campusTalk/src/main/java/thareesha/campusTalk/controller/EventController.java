@@ -1,6 +1,7 @@
 package thareesha.campusTalk.controller;
 
 import thareesha.campusTalk.dto.EventRequestDTO;
+import thareesha.campusTalk.dto.NotificationDTO;
 import thareesha.campusTalk.model.*;
 import thareesha.campusTalk.security.JwtService;
 import thareesha.campusTalk.service.*;
@@ -97,6 +98,21 @@ public class EventController {
 
             Event saved = eventService.createEvent(event);
             
+         // 🔔 Notify followers in real-time
+            List<User> followers = followerService.getFollowers(club);
+
+            followers.forEach(f ->
+                notificationService.sendToUser(
+                    f.getId(),
+                    new NotificationDTO(
+                        "New Event Posted",
+                        club.getName() + " posted: " + saved.getTitle(),
+                        f.getId()
+                    )
+                )
+            );
+
+            
             return ResponseEntity.ok(saved);
 
         } catch (Exception e) {
@@ -168,15 +184,34 @@ public class EventController {
     }
 
     
-    
-    
-    
 
     // 🗑 DELETE EVENT
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEvent(@PathVariable Long id) {
+
+        // 🟦 Get event first (same logic used in update)
+        Event event = eventService.getEventById(id);
+
+        // 🟦 Get followers of the club (non-breaking helper)
+        List<User> followers = followerService.getFollowers(event.getClub());
+
+        // 🟦 Send real-time notifications
+        followers.forEach(f ->
+                notificationService.sendToUser(
+                        f.getId(),
+                        new NotificationDTO(
+                                "Event Deleted",
+                                "The event \"" + event.getTitle() + "\" has been removed.",
+                                f.getId()
+                        )
+                )
+        );
+
+        // 🟥 Now delete the event (your original logic)
         eventService.deleteEvent(id);
+
+        // 🟦 Return your original response
         return ResponseEntity.ok(Map.of("message", "Event deleted"));
     }
 

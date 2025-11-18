@@ -1,7 +1,9 @@
 package thareesha.campusTalk.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import thareesha.campusTalk.dto.NotificationDTO;
 import thareesha.campusTalk.model.Notification;
 import thareesha.campusTalk.model.User;
 import thareesha.campusTalk.repository.NotificationRepository;
@@ -14,6 +16,13 @@ public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;  // 🔥 WebSocket sender
+
+
+    /* ===========================================================
+       📌 1. SAVE NOTIFICATION IN DATABASE (your original logic)
+       =========================================================== */
     public void sendNotification(User user, String message, String type, Long refId) {
         Notification n = Notification.builder()
                 .user(user)
@@ -38,5 +47,21 @@ public class NotificationService {
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
         n.setRead(true);
         notificationRepository.save(n);
+    }
+
+
+
+    /* ===========================================================
+       📌 2. REAL-TIME WEBSOCKET NOTIFICATIONS (NEW)
+       =========================================================== */
+
+    // 🔔 Send a real-time notification to a specific user
+    public void sendToUser(Long userId, NotificationDTO dto) {
+        messagingTemplate.convertAndSend("/queue/notifications-" + userId, dto);
+    }
+
+    // 🔔 Broadcast to admins or all clients
+    public void broadcast(NotificationDTO dto) {
+        messagingTemplate.convertAndSend("/topic/global", dto);
     }
 }
