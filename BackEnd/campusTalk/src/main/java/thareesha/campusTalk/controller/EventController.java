@@ -26,6 +26,13 @@ public class EventController {
     
     @Autowired
     private S3Service s3Service;
+    
+    @Autowired 
+    private NotificationService notificationService;
+
+    @Autowired 
+    private FollowerService followerService;  // followers of clubs
+
 
     @GetMapping
     public List<Event> getAllEvents() {
@@ -89,6 +96,7 @@ public class EventController {
             }
 
             Event saved = eventService.createEvent(event);
+            
             return ResponseEntity.ok(saved);
 
         } catch (Exception e) {
