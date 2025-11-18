@@ -23,26 +23,32 @@ export default function Navbar({ onSearch }) {
   }, [q, onSearch]);
 
   // Fetch notifications (optional placeholder)
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      try {
-        const res = await fetch("/api/notifications", { credentials: "include" });
-        if (!mounted) return;
-        if (res.ok) {
-          const data = await res.json();
-          setNotifications(data || []);
-          setUnreadCount((data || []).filter((n) => !n.read).length);
-        }
-      } catch (e) {
-        // ignore if no notifications yet
-      }
+  // Load unread notifications correctly (JWT secured)
+useEffect(() => {
+  let mounted = true;
+
+  async function loadUnread() {
+    try {
+      const res = await api.get("/notifications/unread-count");
+      if (!mounted) return;
+      setUnreadCount(res.data.count);
+    } catch (err) {
+      console.error("Unread count error", err);
     }
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  }
+
+  loadUnread();
+
+  // Refresh when real-time event arrives
+  const refresh = () => loadUnread();
+  window.addEventListener("new-notification", refresh);
+
+  return () => {
+    mounted = false;
+    window.removeEventListener("new-notification", refresh);
+  };
+}, []);
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -130,17 +136,25 @@ export default function Navbar({ onSearch }) {
 
         {/* Right-side Actions */}
         <div className="ct-actions">
-          <button
-            className="icon-btn"
-            title="Notifications"
-            aria-label={`Notifications, ${unreadCount} unread`}
-            onClick={() => navigate("/notifications")}
-          >
-            <svg className="icon bell" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2C9.243 2 7 4.243 7 7v3.086A2 2 0 0 0 6 12v1l-1 1v1h14v-1l-1-1v-1a2 2 0 0 0-1-1.914V7c0-2.757-2.243-5-5-5z" />
-            </svg>
-            {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-          </button>
+          {/* 🔔 Modern Notification Button */}
+            <button
+              className="icon-btn notif-btn"
+              title="Notifications"
+              aria-label={`Notifications, ${unreadCount} unread`}
+              onClick={() => navigate("/notifications")}
+            >
+              <div className="notif-icon-wrapper">
+                <svg className="icon bell" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2C9.243 2 7 4.243 7 7v3.086A2 2 0 0 0 6 12v1l-1 1v1h14v-1l-1-1v-1a2 2 0 0 0-1-1.914V7c0-2.757-2.243-5-5-5z" />
+                </svg>
+
+                {/* Animated counter */}
+                {unreadCount > 0 && (
+                  <span className="notif-count">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                )}
+              </div>
+            </button>
+
 
           {user ? (
             <div className="profile-area" ref={menuRef}>
