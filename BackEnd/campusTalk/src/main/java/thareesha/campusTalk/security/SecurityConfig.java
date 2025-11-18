@@ -32,17 +32,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1️⃣ Disable CSRF for API
             .csrf(csrf -> csrf.disable())
 
-            // 2️⃣ Allow cross-origin requests from React frontend
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(List.of(
-                    "http://localhost:5173",   // ✅ React (Vite)
-                    "http://13.233.34.226",           // YOUR DEPLOYED FRONTEND
+                    "http://localhost:5173",
+                    "http://13.233.34.226",
                     "http://13.233.34.226:80",
-                    "http://localhost:3000",   // Optional (CRA)
+                    "http://localhost:3000",
                     "http://campustalk.thareesha.software"
                 ));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -52,38 +50,41 @@ public class SecurityConfig {
                 return config;
             }))
 
-            // 3️⃣ Security headers
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())
                 .contentSecurityPolicy(csp -> csp.policyDirectives("script-src 'self'"))
             )
 
-            // 4️⃣ Authorization rules
+            //  🔥🔥🔥 FIX: Allow WebSocket handshake
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/ws").permitAll()
+                .requestMatchers("/topic/**").permitAll()
+                .requestMatchers("/queue/**").permitAll()
+                .requestMatchers("/app/**").permitAll()
 
-            	    .requestMatchers("/api/auth/**").permitAll()
+                // Public Auth
+                .requestMatchers("/api/auth/**").permitAll()
 
-            	    // UNIVERSITY PUBLIC ENDPOINTS
-            	    .requestMatchers(HttpMethod.GET, "/api/universities/**").permitAll()
-            	    .requestMatchers(HttpMethod.GET, "/api/universities/*/details").permitAll()
+                // Public University
+                .requestMatchers(HttpMethod.GET, "/api/universities/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/universities/*/details").permitAll()
 
-            	    .requestMatchers("/api/upload/image/**").permitAll()
+                // Public uploads
+                .requestMatchers("/api/upload/image/**").permitAll()
 
-            	    // PUBLIC CLUB + EVENT FETCHING
-            	    .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
+                // Public club + event browsing
+                .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
 
-            	    // ADMIN ONLY
-            	    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Admin
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-            	    // EVERYTHING ELSE NEEDS JWT
-            	    .anyRequest().authenticated()
-            	)
+                // Everything else requires JWT
+                .anyRequest().authenticated()
+            )
 
-
-            // 5️⃣ Stateless session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // 6️⃣ Custom auth provider and JWT filter
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
