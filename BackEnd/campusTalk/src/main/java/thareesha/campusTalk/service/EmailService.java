@@ -25,19 +25,53 @@ public class EmailService {
             helper.setSubject("🔐 Password Reset Request");
 
             String html = """
-                <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f4f6f8; color: #333;">
-                  <div style="max-width: 600px; margin: auto; background: white; border-radius: 8px; padding: 30px;">
-                    <h2 style="color: #007bff;">Password Reset Request</h2>
-                    <p>Hello,</p>
-                    <p>Your password reset token is:</p>
-                    <div style="background: #007bff; color: white; padding: 10px 20px; display: inline-block; border-radius: 6px; font-size: 1.2rem; letter-spacing: 2px;">
-                      <strong>%s</strong>
-                    </div>
-                    <p style="margin-top: 20px;">Valid for 10 minutes.</p>
-                    <p>If this wasn’t you, ignore this message.</p>
-                  </div>
-                </div>
-                """.formatted(token);
+            	    <div style="font-family: 'Poppins', Arial, sans-serif; padding: 0; margin: 0; background: #eef2f7;">
+            	      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            	        
+            	        <!-- Card -->
+            	        <div style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 25px rgba(0,0,0,0.15);">
+            	          
+            	          <!-- Header -->
+            	          <div style="background: linear-gradient(135deg, #0ea5e9, #7dd3fc); padding: 25px; text-align: center;">
+            	            <h2 style="color: #fff; margin: 0; font-weight: 700; font-size: 24px;">
+            	              🔐 Password Reset Request
+            	            </h2>
+            	          </div>
+            	          
+            	          <!-- Content -->
+            	          <div style="padding: 30px; color: #333; font-size: 16px; line-height: 1.6;">
+            	            <p>Hello,</p>
+            	            <p>You requested to reset your password. Use the token below:</p>
+
+            	            <div style="
+            	              background: #0ea5e9;
+            	              color: #fff;
+            	              padding: 14px 25px;
+            	              text-align: center;
+            	              display: inline-block;
+            	              border-radius: 10px;
+            	              font-size: 20px;
+            	              letter-spacing: 3px;
+            	              margin: 20px 0;
+            	              font-weight: 700;">
+            	              %s
+            	            </div>
+
+            	            <p>This token is valid for <strong>10 minutes</strong>.</p>
+            	            <p>If you did not make this request, please ignore this email.</p>
+            	          </div>
+
+            	          <!-- Footer -->
+            	          <div style="background: #f1f5f9; padding: 18px; text-align: center; color: #555; font-size: 14px;">
+            	            <strong>Spiral Softwares</strong><br/>
+            	            Owned by <strong>Mr. Thareesha Marasinghe</strong>
+            	          </div>
+
+            	        </div>
+            	      </div>
+            	    </div>
+            	    """.formatted(token);
+
 
             helper.setText(html, true);
             mailSender.send(message);
@@ -57,17 +91,52 @@ public class EmailService {
             helper.setSubject("🔐 Your OTP Code");
 
             String html = """
-                <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f9fafb; color: #333;">
-                  <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; padding: 25px;">
-                    <h2 style="color: #007bff;">Email Verification</h2>
-                    <p>Your OTP is:</p>
-                    <div style="background: #28a745; color: white; padding: 10px 20px; display: inline-block; border-radius: 6px; font-size: 1.2rem; letter-spacing: 2px;">
-                      <strong>%s</strong>
-                    </div>
-                    <p>This code is valid for <strong>10 minutes</strong>.</p>
-                  </div>
-                </div>
-                """.formatted(otp);
+            	    <div style="font-family: 'Poppins', Arial, sans-serif; padding: 0; margin: 0; background: #eef2f7;">
+            	      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+
+            	        <!-- Card -->
+            	        <div style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 25px rgba(0,0,0,0.15);">
+
+            	          <!-- Header -->
+            	          <div style="background: linear-gradient(135deg, #10b981, #4ade80); padding: 25px; text-align: center;">
+            	            <h2 style="color: #fff; margin: 0; font-weight: 700; font-size: 24px;">
+            	              🔐 Email Verification
+            	            </h2>
+            	          </div>
+
+            	          <!-- Body -->
+            	          <div style="padding: 30px; color: #333; font-size: 16px; line-height: 1.6;">
+            	            <p>Your One-Time Password (OTP) is:</p>
+
+            	            <div style="
+            	              background: #10b981;
+            	              color: #fff;
+            	              padding: 14px 25px;
+            	              text-align: center;
+            	              display: inline-block;
+            	              border-radius: 10px;
+            	              font-size: 22px;
+            	              letter-spacing: 3px;
+            	              margin: 20px 0;
+            	              font-weight: 700;">
+            	              %s
+            	            </div>
+
+            	            <p>This OTP is valid for <strong>10 minutes</strong>.</p>
+            	            <p>Please do not share it with anyone.</p>
+            	          </div>
+
+            	          <!-- Footer -->
+            	          <div style="background: #f1f5f9; padding: 18px; text-align: center; color: #555; font-size: 14px;">
+            	            <strong>Spiral Softwares</strong><br/>
+            	            Owned by <strong>Mr. Thareesha Marasinghe</strong>
+            	          </div>
+
+            	        </div>
+            	      </div>
+            	    </div>
+            	    """.formatted(otp);
+
 
             helper.setText(html, true);
             mailSender.send(message);
