@@ -1,30 +1,34 @@
-// src/pages/Notifications/Notifications.jsx
 import React, { useEffect, useState } from "react";
 import api from "../api";
 import "./Notifications.css";
-
-/*
-  /notifications page
-  - Lists notifications, mark read/unread
-  - Backend: GET /notifications, POST /notifications/{id}/read
-*/
 
 export default function Notifications() {
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/notifications");
+      setNotifs(res.data || []);
+    } catch (e) {
+      setNotifs([]);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    api.get("/notifications").then((r) => {
-      setNotifs(r.data || []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    loadNotifications();
+
+    const refresh = () => loadNotifications();
+    window.addEventListener("new-notification", refresh);
+
+    return () => window.removeEventListener("new-notification", refresh);
   }, []);
 
   const markRead = async (id) => {
-    try {
-      await api.post(`/notifications/${id}/read`);
-      setNotifs((prev) => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    } catch (e) {}
+    await api.post(`/notifications/${id}/read`);
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   if (loading) return <div className="center">Loading...</div>;
@@ -32,15 +36,30 @@ export default function Notifications() {
   return (
     <div className="notifications-page">
       <h2>Notifications</h2>
-      {notifs.length === 0 ? <p className="muted">No notifications</p> : (
+
+      {notifs.length === 0 ? (
+        <p className="muted">No notifications yet</p>
+      ) : (
         <div className="notif-list">
-          {notifs.map(n => (
-            <div key={n.id} className={`notif-item ${n.read ? "read" : ""}`}>
+          {notifs.map((n) => (
+            <div
+              key={n.id}
+              className={`notif-item ${n.read ? "read" : "unread"}`}
+            >
               <div className="notif-body">
+                <p className="notif-title">{n.type}</p>
                 <p className="notif-text">{n.message}</p>
-                <span className="muted">{new Date(n.createdAt).toLocaleString()}</span>
+
+                <span className="time">
+                  {new Date(n.createdAt).toLocaleString()}
+                </span>
               </div>
-              {!n.read && <button className="btn-outline-sm" onClick={() => markRead(n.id)}>Mark read</button>}
+
+              {!n.read && (
+                <button className="btn-mark" onClick={() => markRead(n.id)}>
+                  Mark as read
+                </button>
+              )}
             </div>
           ))}
         </div>
