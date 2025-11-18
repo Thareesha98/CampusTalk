@@ -24,10 +24,11 @@ public class NotificationController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity<List<?>> getNotifications(Authentication auth) {
+    public ResponseEntity<?> getNotifications(Authentication auth) {
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         return ResponseEntity.ok(notificationService.getUserNotifications(user));
     }
 
@@ -37,6 +38,7 @@ public class NotificationController {
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         long count = notificationService.countUnread(user);
         return ResponseEntity.ok(Map.of("count", count));
     }
@@ -44,9 +46,11 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{id}/read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id, Authentication auth) {
+
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         notificationService.markAsRead(id, user);
         return ResponseEntity.ok(Map.of("message", "Notification marked as read"));
     }

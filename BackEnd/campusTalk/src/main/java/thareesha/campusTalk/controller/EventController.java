@@ -1,7 +1,6 @@
 package thareesha.campusTalk.controller;
 
 import thareesha.campusTalk.dto.EventRequestDTO;
-import thareesha.campusTalk.dto.NotificationDTO;
 import thareesha.campusTalk.model.*;
 import thareesha.campusTalk.security.JwtService;
 import thareesha.campusTalk.service.*;
@@ -24,15 +23,9 @@ public class EventController {
     @Autowired private ClubService clubService;
     @Autowired private UserService userService;
     @Autowired private JwtService jwtService;
-    
-    @Autowired
-    private S3Service s3Service;
-    
-    @Autowired 
-    private NotificationService notificationService;
-
-    @Autowired 
-    private FollowerService followerService;  // followers of clubs
+    @Autowired private S3Service s3Service;
+    @Autowired private NotificationService notificationService;
+    @Autowired private FollowerService followerService;
 
 
     @GetMapping
@@ -45,7 +38,7 @@ public class EventController {
         return eventService.getEventById(id);
     }
 
-    // 🆕 CREATE EVENT (CHAIRMAN or ADMIN)
+    // 🆕 CREATE EVENT
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
     @PostMapping(value = "/club/{clubId}", consumes = {"multipart/form-data"})
     public ResponseEntity<?> createEvent(
@@ -55,7 +48,7 @@ public class EventController {
             @RequestHeader("Authorization") String tokenHeader) {
 
         try {
-            // 🔑 Get user info
+            // 🔑 Extract user
             String token = tokenHeader.substring(7);
             String email = jwtService.extractEmail(token);
             User creator = userService.findByEmail(email).orElseThrow();
@@ -67,25 +60,21 @@ public class EventController {
                         .body(Map.of("error", "You can only create events for your own club"));
             }
 
-            // 🖼 Upload image if present
+            // 🖼 Upload image
             String imageUrl = null;
             if (file != null && !file.isEmpty()) {
-                System.out.println("✅ Uploading file to S3: " + file.getOriginalFilename());
                 imageUrl = s3Service.uploadFile(file, "event-images/");
-            } else {
-                System.out.println("⚠️ No image file uploaded");
             }
 
-            // 🧩 Build Event from DTO
+            // 🧩 Create event
             Event event = new Event();
             event.setTitle(dto.getTitle());
             event.setDescription(dto.getDescription());
             event.setLocation(dto.getLocation());
             event.setCreatedBy(creator);
             event.setClub(club);
-            event.setImageUrl(imageUrl); // ✅ set uploaded image URL
+            event.setImageUrl(imageUrl);
 
-            // Safely parse dateTime
             try {
                 if (dto.getDateTime() != null && !dto.getDateTime().isBlank()) {
                     event.setDateTime(LocalDateTime.parse(dto.getDateTime()));
@@ -97,35 +86,28 @@ public class EventController {
             }
 
             Event saved = eventService.createEvent(event);
-            
-         // 🔔 Notify followers in real-time
-            List<User> followers = followerService.getFollowers(club);
 
+            // 🔔 Notify ALL followers (DB + WebSocket)
+            List<User> followers = followerService.getFollowers(club);
             followers.forEach(f ->
-                notificationService.sendToUser(
-                    f.getId(),
-                    new NotificationDTO(
+                notificationService.notify(
+                        f,
                         "New Event Posted",
-                        club.getName() + " posted: " + saved.getTitle(),
-                        f.getId()
-                    )
+                        club.getName() + " posted a new event: " + saved.getTitle(),
+                        "EVENT",
+                        saved.getId()
                 )
             );
 
-            
             return ResponseEntity.ok(saved);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to create event: " + e.getMessage()));
         }
     }
 
-    
-    
-    
-    
+
     // ✏️ UPDATE EVENT
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
@@ -136,33 +118,24 @@ public class EventController {
             @RequestHeader("Authorization") String tokenHeader) {
 
         try {
-            // 🔑 Get user info (if you want to enforce chairman access check)
             String token = tokenHeader.substring(7);
             String email = jwtService.extractEmail(token);
             User updater = userService.findByEmail(email).orElseThrow();
 
             Event existing = eventService.getEventById(id);
-            if (existing == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "Event not found"));
-            }
 
-            // 🧠 Optional: Verify only chairman of that club can edit
             if (updater.getRole().equals("CHAIRMAN") &&
                     (existing.getClub().getChairman() == null ||
                             !existing.getClub().getChairman().getId().equals(updater.getId()))) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "You can only edit events of your own club"));
+                        .body(Map.of("error", "You can only edit events of your club"));
             }
 
-            // 🖼 Upload new image (if provided)
             if (file != null && !file.isEmpty()) {
-                System.out.println("✅ Uploading new event image: " + file.getOriginalFilename());
                 String newImageUrl = s3Service.uploadFile(file, "event-images/");
                 existing.setImageUrl(newImageUrl);
             }
 
-            // 🧩 Update details from DTO
             existing.setTitle(dto.getTitle());
             existing.setDescription(dto.getDescription());
             existing.setLocation(dto.getLocation());
@@ -173,47 +146,39 @@ public class EventController {
                 }
             } catch (DateTimeParseException ignored) {}
 
-            Event updated = eventService.updateEvent(id, existing);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(eventService.updateEvent(id, existing));
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to update event: " + e.getMessage()));
         }
     }
 
-    
 
     // 🗑 DELETE EVENT
     @PreAuthorize("hasAnyRole('CHAIRMAN','ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEvent(@PathVariable Long id) {
 
-        // 🟦 Get event first (same logic used in update)
         Event event = eventService.getEventById(id);
-
-        // 🟦 Get followers of the club (non-breaking helper)
         List<User> followers = followerService.getFollowers(event.getClub());
 
-        // 🟦 Send real-time notifications
+        // 🔔 Notify followers
         followers.forEach(f ->
-                notificationService.sendToUser(
-                        f.getId(),
-                        new NotificationDTO(
-                                "Event Deleted",
-                                "The event \"" + event.getTitle() + "\" has been removed.",
-                                f.getId()
-                        )
+                notificationService.notify(
+                        f,
+                        "Event Deleted",
+                        "The event \"" + event.getTitle() + "\" was removed.",
+                        "EVENT",
+                        event.getId()
                 )
         );
 
-        // 🟥 Now delete the event (your original logic)
         eventService.deleteEvent(id);
 
-        // 🟦 Return your original response
         return ResponseEntity.ok(Map.of("message", "Event deleted"));
     }
+
 
     // 📋 GET EVENTS BY CLUB
     @GetMapping("/club/{clubId}")
