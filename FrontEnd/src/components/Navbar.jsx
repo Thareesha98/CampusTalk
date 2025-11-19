@@ -1,6 +1,8 @@
+// src/components/Navbar.jsx
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import api from "../api";
 import "./Navbar.css";
 
 export default function Navbar({ onSearch }) {
@@ -10,11 +12,10 @@ export default function Navbar({ onSearch }) {
   const [q, setQ] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef(null);
 
-  // Debounced search
+  // 🔎 Debounced search
   useEffect(() => {
     const t = setTimeout(() => {
       if (onSearch) onSearch(q);
@@ -22,35 +23,34 @@ export default function Navbar({ onSearch }) {
     return () => clearTimeout(t);
   }, [q, onSearch]);
 
-  // Fetch notifications (optional placeholder)
-  // Load unread notifications correctly (JWT secured)
-useEffect(() => {
-  let mounted = true;
+  // 🔔 Load unread notifications (JWT-protected)
+  useEffect(() => {
+    let mounted = true;
 
-  async function loadUnread() {
-    try {
-      const res = await api.get("/notifications/unread-count");
-      if (!mounted) return;
-      setUnreadCount(res.data.count);
-    } catch (err) {
-      console.error("Unread count error", err);
+    async function loadUnread() {
+      try {
+        const res = await api.get("/notifications/unread-count");
+        if (mounted) {
+          setUnreadCount(res.data.count);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load unread count", err);
+      }
     }
-  }
 
-  loadUnread();
+    loadUnread();
 
-  // Refresh when real-time event arrives
-  const refresh = () => loadUnread();
-  window.addEventListener("new-notification", refresh);
+    // 🔥 Refresh when real-time event arrives
+    const refresh = () => loadUnread();
+    window.addEventListener("new-notification", refresh);
 
-  return () => {
-    mounted = false;
-    window.removeEventListener("new-notification", refresh);
-  };
-}, []);
+    return () => {
+      mounted = false;
+      window.removeEventListener("new-notification", refresh);
+    };
+  }, []);
 
-
-  // Close dropdown when clicking outside
+  // 🧭 Close profile dropdown when clicking outside
   useEffect(() => {
     function onDoc(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -69,6 +69,7 @@ useEffect(() => {
   return (
     <header className="ct-navbar" role="banner">
       <div className="ct-nav-inner">
+
         {/* Brand + Search */}
         <div className="brand-area">
           <Link to="/" className="ct-brand" aria-label="CampusTalk home">
@@ -112,50 +113,36 @@ useEffect(() => {
 
         {/* Navigation Links */}
         <nav className={`ct-links ${showMobileNav ? "open" : ""}`} aria-label="Primary">
-  <Link to="/" className="ct-link">
-    Home
-  </Link>
-  <Link to="/universities" className="ct-link">
-    Universities
-  </Link>
-  <Link to="/clubs" className="ct-link">
-    Clubs
-  </Link>
-  <Link to="/events" className="ct-link">
-    Events
-  </Link>
+          <Link to="/" className="ct-link">Home</Link>
+          <Link to="/universities" className="ct-link">Universities</Link>
+          <Link to="/clubs" className="ct-link">Clubs</Link>
+          <Link to="/events" className="ct-link">Events</Link>
 
-  {/* 🧭 Dashboard button for Chairmen/Admins */}
-  {(user?.role === "CHAIRMAN" || user?.role === "ADMIN") && (
-    <Link to="/dashboard" className="ct-link btn-dashboard">
-      📊 Dashboard
-    </Link>
-  )}
-</nav>
-
+          {(user?.role === "CHAIRMAN" || user?.role === "ADMIN") && (
+            <Link to="/dashboard" className="ct-link btn-dashboard">📊 Dashboard</Link>
+          )}
+        </nav>
 
         {/* Right-side Actions */}
         <div className="ct-actions">
-          {/* 🔔 Modern Notification Button */}
-            <button
-              className="icon-btn notif-btn"
-              title="Notifications"
-              aria-label={`Notifications, ${unreadCount} unread`}
-              onClick={() => navigate("/notifications")}
-            >
-              <div className="notif-icon-wrapper">
-                <svg className="icon bell" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 2C9.243 2 7 4.243 7 7v3.086A2 2 0 0 0 6 12v1l-1 1v1h14v-1l-1-1v-1a2 2 0 0 0-1-1.914V7c0-2.757-2.243-5-5-5z" />
-                </svg>
 
-                {/* Animated counter */}
-                {unreadCount > 0 && (
-                  <span className="notif-count">{unreadCount > 99 ? "99+" : unreadCount}</span>
-                )}
-              </div>
-            </button>
+          {/* 🔔 Notification Icon + Modern Badge */}
+          <button
+            className="icon-btn notif-btn"
+            title="Notifications"
+            aria-label={`Notifications, ${unreadCount} unread`}
+            onClick={() => navigate("/notifications")}
+          >
+            <svg className="icon bell" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2C9.243 2 7 4.243 7 7v3.086A2 2 0 0 0 6 12v1l-1 1v1h14v-1l-1-1v-1a2 2 0 0 0-1-1.914V7c0-2.757-2.243-5-5-5z" />
+            </svg>
 
+            {unreadCount > 0 && (
+              <span className="notif-badge">{unreadCount}</span>
+            )}
+          </button>
 
+          {/* Profile */}
           {user ? (
             <div className="profile-area" ref={menuRef}>
               <button
@@ -176,26 +163,15 @@ useEffect(() => {
 
               {showMenu && (
                 <div className="profile-menu" role="menu">
-                  <Link to={`/profile/${user.id}`} className="menu-item">
-                    View profile
-                  </Link>
-                  <Link to="/settings" className="menu-item">
-                    Settings
-                  </Link>
-                  <button className="menu-item danger" onClick={handleLogout}>
-                    Logout
-                  </button>
+                  <Link to={`/profile/${user.id}`} className="menu-item">View profile</Link>
+                  <Link to="/settings" className="menu-item">Settings</Link>
+                  <button className="menu-item danger" onClick={handleLogout}>Logout</button>
                 </div>
               )}
             </div>
           ) : (
             <div className="auth-actions">
-              {/* <Link className="btn-outline" to="/login">
-                Sign in
-              </Link> */}
-              <Link className="btn-primary" to="/register">
-                Sign up
-              </Link>
+              <Link className="btn-primary" to="/register">Sign up</Link>
             </div>
           )}
         </div>
