@@ -372,3 +372,100 @@
   outline: 2px solid rgba(6, 182, 212, 0.3);
   outline-offset: 3px;
 }
+
+
+/* ===============================
+   🔔 Modern Animated Notification Icon
+   =============================== */
+
+.notif-btn {
+  position: relative;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: 0.25s ease;
+}
+
+.notif-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.notif-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bell animation when new notifications arrive */
+.notif-btn .bell {
+  animation: bellIdle 2s ease infinite;
+}
+
+@keyframes bellIdle {
+  0%, 90%, 100% { transform: rotate(0deg); }
+  92% { transform: rotate(7deg); }
+  96% { transform: rotate(-7deg); }
+}
+
+/* Counter Badge */
+.notif-count {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+
+  min-width: 20px;
+  height: 20px;
+
+  padding: 2px 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  border-radius: 16px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.55);
+
+  animation: popIn 0.25s ease;
+}
+
+/* Pop animation when number changes */
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+
+/* NEW modern notification badge */
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+  animation: notif-pop 0.25s ease;
+}
+
+/* Small pop animation */
+@keyframes notif-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}

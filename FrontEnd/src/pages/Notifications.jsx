@@ -1,37 +1,65 @@
-import React, { useEffect, useState } from "react";
+// src/pages/Notifications.jsx
+import React, { useContext, useEffect, useState } from "react";
 import api from "../api";
 import "./Notifications.css";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Notifications() {
+  const { loadingAuth } = useContext(AuthContext);
+
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ==========================================================
+  // LOAD NOTIFICATIONS
+  // ==========================================================
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/notifications");
+      const res = await api.get("/notifications"); 
       setNotifs(res.data || []);
     } catch (e) {
+      console.error("Failed to load notifications:", e);
       setNotifs([]);
     }
     setLoading(false);
   };
 
+  // ==========================================================
+  // RUN ONLY AFTER TOKEN IS READY (Fix)
+  // ==========================================================
   useEffect(() => {
-    loadNotifications();
+    if (!loadingAuth) {
+      loadNotifications();
+    }
+  }, [loadingAuth]);
 
-    const refresh = () => loadNotifications();
-    window.addEventListener("new-notification", refresh);
+  // ==========================================================
+  // REAL-TIME WS REFRESH
+  // ==========================================================
+  useEffect(() => {
+    const handler = () => loadNotifications();
+    window.addEventListener("new-notification", handler);
 
-    return () => window.removeEventListener("new-notification", refresh);
+    return () => window.removeEventListener("new-notification", handler);
   }, []);
 
+  // ==========================================================
+  // MARK READ
+  // ==========================================================
   const markRead = async (id) => {
-    await api.post(`/notifications/${id}/read`);
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    try {
+      await api.post(`/notifications/${id}/read`);
+      setNotifs((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+    } catch (e) {
+      console.error("Error marking notification read:", e);
+    }
   };
 
-  if (loading) return <div className="center">Loading...</div>;
+  if (loadingAuth || loading)
+    return <div className="center">Loading...</div>;
 
   return (
     <div className="notifications-page">
@@ -42,8 +70,7 @@ export default function Notifications() {
       ) : (
         <div className="notif-list">
           {notifs.map((n) => (
-            <div
-              key={n.id}
+            <div key={n.id}
               className={`notif-item ${n.read ? "read" : "unread"}`}
             >
               <div className="notif-body">
