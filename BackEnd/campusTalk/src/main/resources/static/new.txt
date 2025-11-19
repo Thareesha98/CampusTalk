@@ -1,1 +1,50 @@
-hellooo
+hellooo# Project Changelog – RacingHubCarRental
+# This file documents all notable changes made to the system.
+# Add new entries for every feature, bug fix, enhancement, refactor, or maintenance task.
+
+------------------------------------------------------------
+VERSION 1.0.0 – INITIAL SYSTEM FOUNDATION
+------------------------------------------------------------
+- Added base project structure for MVC application.
+- Implemented early entity models: User, Manufacturer, Rental, CarModel.
+- Added Entity Framework database context (RacingHubCarRentalEntities).
+- Created initial Razor views for user authentication.
+
+------------------------------------------------------------
+VERSION 1.1.0 – LOGIC LAYER INTRODUCTION
+------------------------------------------------------------
+- Added BaseLogic class to centralize database context usage.
+- Implemented ManufacturersLogic with Create/Update/Delete operations.
+- Added ManufacturerModelsLogic with cascading delete support.
+
+------------------------------------------------------------
+VERSION 1.2.0 – REFACTOR: QUERY SERVICES ADDED
+------------------------------------------------------------
+- Introduced ManufacturerQueryService for read-only operations.
+- Separated read and write responsibilities across logic classes.
+- Improved validation helpers across multiple service layers.
+
+------------------------------------------------------------
+VERSION 1.3.0 – ASYNC MODERNIZATION
+------------------------------------------------------------
+- Converted major logic classes to async versions.
+- Added SafeExecuteAsync wrappers for error-safe operations.
+- Introduced CancellationToken support across services.
+
+------------------------------------------------------------
+VERSION 1.4.0 – CLEAN ARCHITECTURE UPGRADE
+------------------------------------------------------------
+- Added DTOs and ViewModels for safer UI-bound operations.
+- Introduced IManufacturerModelsService & IManufacturersService interfaces.
+- Updated Controllers to async/await patterns.
+- Added automated cascade delete helpers with granular commit patterns.
+
+------------------------------------------------------------
+VERSION 1.5.0 – MAINTENANCE & QUALITY
+------------------------------------------------------------
+- Added code documentation throughout logic and service layers.
+- Improved error messages and strengthened validation.
+- Optimized LINQ queries for better performance.
+
+# END OF FILE
+
