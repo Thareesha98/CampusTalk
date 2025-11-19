@@ -1,1 +1,81 @@
-Durl=
+# RacingHubCarRental – Architecture Notes
+# This document explains the project's internal structure, layers, patterns, and design guidelines.
+
+============================================================
+1. OVERALL ARCHITECTURE
+============================================================
+The project follows an MVC + Service Layer hybrid architecture.
+The stack includes:
+- ASP.NET MVC
+- Entity Framework 6
+- SQL Database
+- Service-based abstraction for business logic
+
+Layers:
+- Controllers
+- Services / Logic Layer
+- Query Services
+- Entity Framework DB context
+- Views (Razor)
+
+============================================================
+2. LOGIC LAYER STRUCTURE
+============================================================
+There are two classes of logic components:
+
+A. Write Services (Commands)
+   - ManufacturersLogic
+   - CarModelsLogic
+   - OrdersLogic
+   - RolesLogic
+   - UsersLogic
+
+B. Query Services (Reads)
+   - ManufacturerQueryService
+   - ManufacturerModelsQueryService (future)
+   - CarModelsQueryService (future)
+
+The purpose is to introduce a Command/Query Responsibility Segregation (CQRS) approach.
+
+============================================================
+3. ENTITY FRAMEWORK PATTERNS
+============================================================
+- All entities are accessed through RacingHubCarRentalEntities.
+- Lazy loading is enabled but controlled through Include() when necessary.
+- Cascading deletes are manually implemented for full control.
+- BaseLogic disposes the DB context to avoid memory leaks.
+
+============================================================
+4. ASYNC MODEL
+============================================================
+All major logic methods now support:
+- async/await
+- CancellationToken
+- SafeExecuteAsync wrappers
+
+This improves scalability and code predictability.
+
+============================================================
+5. CONTROLLERS & VIEWMODELS
+============================================================
+Controllers now follow rules:
+- No direct DB calls
+- No logic inside the controller
+- Use services for all operations
+- Pass only ViewModels to Views
+- Validation handled by DataAnnotations + manual logic validation
+
+============================================================
+6. ERROR HANDLING STRATEGY
+============================================================
+- Centralized in SafeExecuteAsync inside BaseLogic.
+- Uses try/catch with developer-friendly messages.
+- Graceful fallback for UI layers.
+
+============================================================
+7. FUTURE IMPROVEMENTS
+============================================================
+- Introduce Repository Pattern
+- Replace EF6 with EF Core
+- Add unit tests for all se
+
