@@ -1,0 +1,7 @@
+**/target/
+*.zip
+*.class
+ClubService/mvnw*
+EventService/mvnw*
+PostService/mvnw*
+notification-ws-gateway/mvnw*
